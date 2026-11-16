@@ -26,13 +26,14 @@
 ## 🟢 התחלה
 
 - [x] S2a · תשתית Claude Code
+- [x] S7a · הקמת Vault של Obsidian
 - [x] S3 · Git + GitHub 🔒
 - [ ] S1 · אפיון PRD 🔒
 - [ ] S2b · מבנה האפליקציה לפי האפיון 🔒
 - [ ] S4 · todo.md למשימות עתידיות
 - [ ] S5 · MCPs לפרויקט 🔒
 - [ ] S6 · תכנון ריצה בענן 24/7
-- [ ] S7 · Vault של Obsidian + סנכרון 🔒
+- [ ] S7b · מיפוי ל-Vault + Hook סנכרון 🔒
 
 ## 🟡 במהלך (חוזרות)
 
@@ -63,3 +64,4 @@
 | 16.11.2026 | S3 | שלבים 1–3: git init, ‏.gitignore, ‏.env.example. התיקייה שונתה ל-kaminer.ai והוגדרה זהות git לפרויקט |
 | 16.11.2026 | — | שם הפרויקט עודכן ל-kaminer.ai, slug ל-kaminer-ai |
 | 16.11.2026 | S3 | repo פרטי מחובר, commit ראשון a66744c נדחף ל-main. אומת ש-.env לא במעקב |
+| 16.11.2026 | S7a | נוצר Vault/ (Home, Decisions, Sessions, Specs, Architecture), החרגות Obsidian ב-.gitignore, סעיף Vault ב-CLAUDE.md. S7 פוצלה ל-S7a/S7b |
