@@ -26,7 +26,7 @@
 ## 🟢 התחלה
 
 - [x] S2a · תשתית Claude Code
-- [ ] S3 · Git + GitHub 🔒
+- [x] S3 · Git + GitHub 🔒
 - [ ] S1 · אפיון PRD 🔒
 - [ ] S2b · מבנה האפליקציה לפי האפיון 🔒
 - [ ] S4 · todo.md למשימות עתידיות
@@ -62,3 +62,4 @@
 | 16.11.2026 | S2a | נוצרו .claude/agents, skills, commands, docs (עם .gitkeep) ו-CLAUDE.md בסיסי |
 | 16.11.2026 | S3 | שלבים 1–3: git init, ‏.gitignore, ‏.env.example. התיקייה שונתה ל-kaminer.ai והוגדרה זהות git לפרויקט |
 | 16.11.2026 | — | שם הפרויקט עודכן ל-kaminer.ai, slug ל-kaminer-ai |
+| 16.11.2026 | S3 | repo פרטי מחובר, commit ראשון a66744c נדחף ל-main. אומת ש-.env לא במעקב |
