@@ -3,13 +3,28 @@
 מערכת לניהול משימות: לקוחות, שיוך משימות ללקוח, יומן פגישות, הערכת זמן ושעון למדידת זמן לכל משימה, סטטוס, וקטלוג משימות (שיווק, עסקיות, לקוחות, אישיות). משתמשת יחידה (בעלת העסק) ופרילנסרים כרשומות; סנכרון דו־כיווני ל-Google Calendar; משימות אישיות פרטיות. שלב ראשון רץ מקומית.
 
 ## Stack
-ייקבע אחרי האפיון (S2b).
+- Next.js 16 (App Router, Turbopack, TypeScript), React 19. **לפני כתיבת קוד Next קרא את `AGENTS.md`** — יש שינויים שוברים (למשל `proxy.ts` במקום `middleware.ts`, ‏`cacheComponents` פעיל).
+- Supabase (Postgres 17, Auth, RLS) דרך `@supabase/ssr`. מקומית: Supabase CLI על Docker Desktop.
+- Tailwind 4 + shadcn/ui (new-york, ‏`components.json`), פונט Heebo, ‏`dir="rtl"`.
+- zod לולידציה, date-fns לתאריכים (Asia/Jerusalem, ‏dd.mm.yyyy, שבוע מיום ראשון), Vitest לבדיקות.
+- בהמשך: Supabase מנוהל + Vercel.
 
 ## מבנה
-ייקבע אחרי האפיון (S2b).
+- `src/app/(auth)/login` — התחברות · `src/app/auth/callback` — חזרה מ-Supabase Auth
+- `src/app/(app)/` — אזור מוגן: `page.tsx` (היום שלי), ‏tasks, clients, freelancers, catalog, calendar, settings
+- `src/app/api/google/{oauth,sync}` — OAuth וסנכרון Google Calendar (צד שרת בלבד)
+- `src/app/api/cron` — משימות מתוזמנות (שלב ב')
+- `src/features/<domain>/` — לוגיקה לפי תחום: `actions.ts`, ‏`queries.ts`, ‏`schemas.ts`, רכיבים
+- `src/components/ui` — shadcn · `src/components/layout` — מעטפת, ניווט, שעון בכותרת
+- `src/lib/supabase` — לקוחות server/browser/admin (admin רק בשרת) · `src/lib/google` — OAuth, Calendar, הצפנת טוקן
+- `src/types/database.ts` — נוצר ב-`npm run db:types`, לא לערוך ידנית
+- `supabase/migrations` — מקור האמת של ה-DB (סכמה, RLS, views) · `supabase/seed.sql` — נתוני דמה · `supabase/functions` — Edge Functions
+- `tests/` — Vitest
 
 ## פקודות
-ייקבעו אחרי האפיון (S2b).
+- `npm run dev` — שרת פיתוח (localhost:3000) · `npm run build` · `npm run lint` · `npm test`
+- `npm run db:start` / `db:stop` — Supabase מקומי (דורש Docker) · `npm run db:reset` — מיגרציות + seed · `npm run db:types` — טיפוסים
+- רכיבי shadcn: `npx shadcn@latest add <name>` (ייתכן ש-ui.shadcn.com חסום ברשת — אז לכתוב ידנית)
 
 ## קישורים
 - Repo: https://github.com/b8676544-code/kaminer.ai

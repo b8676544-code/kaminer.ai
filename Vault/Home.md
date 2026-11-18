@@ -13,7 +13,7 @@ tags:
 - [[Decisions/2026-11-16-בחירות-פתיחה|החלטות]] — כל החלטה ארכיטקטונית בפתק משלה
 - [[Sessions/2026-11-16|סיכומי סשנים]] — מה נעשה בכל סשן ומה פתוח
 - [[Specs/PRD-summary|Specs]] — סיכומי האפיון והפיצ'רים (המקור המלא: `docs/PRD.md`)
-- Architecture — מבנה הקוד (יתמלא אחרי S2b)
+- [[Decisions/2026-11-18-מבנה-אפליקציה|Architecture]] — מבנה הקוד (פירוט מלא ב-`CLAUDE.md`)
 
 ## קישורים
 - Repo: https://github.com/b8676544-code/kaminer.ai
