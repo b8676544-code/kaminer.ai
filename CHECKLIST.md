@@ -30,7 +30,7 @@
 - [x] S3 · Git + GitHub 🔒
 - [x] S1 · אפיון PRD 🔒
 - [x] S2b · מבנה האפליקציה לפי האפיון 🔒
-- [ ] S4 · todo.md למשימות עתידיות
+- [x] S4 · todo.md למשימות עתידיות
 - [ ] S5 · MCPs לפרויקט 🔒
 - [ ] S6 · תכנון ריצה בענן 24/7
 - [ ] S7b · מיפוי ל-Vault + Hook סנכרון 🔒
@@ -67,3 +67,4 @@
 | 16.11.2026 | S7a | נוצר Vault/ (Home, Decisions, Sessions, Specs, Architecture), החרגות Obsidian ב-.gitignore, סעיף Vault ב-CLAUDE.md. S7 פוצלה ל-S7a/S7b |
 | 18.11.2026 | S1 | נכתב ואושר docs/PRD.md (גרסה 1.1): משתמשת יחידה ופרילנסרים כרשומות, קטלוג תבניות, Google Calendar דו־כיווני ב-MVP, ריצה מקומית על Supabase+Docker |
 | 18.11.2026 | S2b | הוקם שלד Next.js 16 + Supabase + shadcn ‏(RTL, ‏Heebo), תיקיות לפי האפיון, סקריפטים, CLAUDE.md. ‏dev/build/lint עוברים. פתוח: התקנת Docker ובדיקת `npm run db:start` |
+| 18.11.2026 | S4 | נוצר todo.md עם פריטי שלב ב׳ מה-PRD ומשימת Docker הפתוחה מ-S2b (עדיפות גבוהה), ונוסף ל-CLAUDE.md סעיף "משימות עתידיות" |
