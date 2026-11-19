@@ -80,7 +80,7 @@ async function ClientsList({ searchParams }: Pick<PageProps<"/clients">, "search
                     </Link>
                   </TableCell>
                   <TableCell>{c.contact_name ?? "—"}</TableCell>
-                  <TableCell dir="ltr" className="text-end">
+                  <TableCell dir="ltr" className="text-end whitespace-nowrap">
                     {c.phone ?? "—"}
                   </TableCell>
                   <TableCell>{c.openTasks}</TableCell>

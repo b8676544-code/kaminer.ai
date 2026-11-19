@@ -22,7 +22,7 @@ export const optionalNumber = (schema: z.ZodNumber) =>
   z.preprocess((v) => (v === "" || v == null ? null : Number(v)), schema.nullable());
 
 // uuid אופציונלי מ-select ("" = ללא)
-export const optionalUuid = z.preprocess((v) => (v === "" || v == null ? null : v), z.uuid().nullable());
+export const optionalUuid = z.preprocess((v) => (v === "" || v == null ? null : v), z.guid().nullable());
 
 export function formToObject(formData: FormData): Record<string, string> {
   const obj: Record<string, string> = {};

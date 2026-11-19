@@ -13,7 +13,7 @@ export async function saveClient(_prev: ActionState, formData: FormData): Promis
   const parsed = clientSchema.safeParse(raw);
   if (!parsed.success) return zodToState(parsed.error);
 
-  const id = raw.id ? z.uuid().safeParse(raw.id) : null;
+  const id = raw.id ? z.guid().safeParse(raw.id) : null;
   if (id && !id.success) return { error: "מזהה לא תקין" };
 
   // owner_id מתמלא ב-DB (auth.uid()), וה-RLS מוודא בעלות
@@ -28,7 +28,7 @@ export async function saveClient(_prev: ActionState, formData: FormData): Promis
 
 export async function setClientStatus(id: string, status: "active" | "archived"): Promise<ActionState> {
   const { supabase } = await requireUser();
-  const parsedId = z.uuid().safeParse(id);
+  const parsedId = z.guid().safeParse(id);
   if (!parsedId.success) return { error: "מזהה לא תקין" };
 
   const { error } = await supabase.from("clients").update({ status }).eq("id", parsedId.data);
