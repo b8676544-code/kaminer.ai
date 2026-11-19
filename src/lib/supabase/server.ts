@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 import type { Database } from "@/types/database";
@@ -7,6 +8,9 @@ import type { Database } from "@/types/database";
 // לקוח Supabase לשרת (Server Components, Server Actions, Route Handlers).
 // פועל בהרשאות המשתמשת המחוברת, כך שה-RLS חל.
 export async function createClient() {
+  // נתונים של המשתמשת תמיד בזמן הבקשה: לא לרנדר מראש ולא לשמור בקאש משותף
+  // (גם מונע את שגיאת Date.now() של cacheComponents בתוך ה-SDK).
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(

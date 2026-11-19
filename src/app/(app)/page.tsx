@@ -1,18 +1,26 @@
+import Link from "next/link";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-// מסך "היום שלי" — שלד בלבד. התוכן ייבנה בפיצ'ר 8 (אחרי D1).
+// מסך "היום שלי" — ייבנה בפיצ'ר 8. בינתיים קיצורי דרך.
 export default function TodayPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl p-8">
+    <div className="grid gap-6">
+      <h1 className="text-2xl font-bold">היום שלי</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">היום שלי</CardTitle>
-          <CardDescription>kaminer.ai — שלד האפליקציה מוכן</CardDescription>
+          <CardTitle>בקרוב</CardTitle>
+          <CardDescription>כאן יוצגו השעון, פגישות היום ומשימות להיום.</CardDescription>
         </CardHeader>
-        <CardContent className="text-muted-foreground">
-          כאן יוצגו השעון, פגישות היום ומשימות להיום.
+        <CardContent className="flex gap-4 text-sm">
+          <Link href="/tasks" className="text-primary underline underline-offset-4">
+            למשימות
+          </Link>
+          <Link href="/clients" className="text-primary underline underline-offset-4">
+            ללקוחות
+          </Link>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
