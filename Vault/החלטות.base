@@ -1,0 +1,24 @@
+filters:
+  and:
+    - file.inFolder("Decisions")
+    - 'type == "decision"'
+formulas:
+  days_ago: '(today() - date(date)).days'
+properties:
+  note.date:
+    displayName: "תאריך"
+  note.tags:
+    displayName: "תגיות"
+  formula.days_ago:
+    displayName: "לפני (ימים)"
+views:
+  - type: table
+    name: "כל ההחלטות"
+    sort:
+      - property: date
+        direction: DESC
+    order:
+      - file.name
+      - date
+      - tags
+      - formula.days_ago

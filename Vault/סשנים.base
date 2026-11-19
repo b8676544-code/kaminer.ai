@@ -1,0 +1,17 @@
+filters:
+  and:
+    - file.inFolder("Sessions")
+    - 'type == "session"'
+properties:
+  note.date:
+    displayName: "תאריך"
+views:
+  - type: table
+    name: "כל הסשנים"
+    sort:
+      - property: date
+        direction: DESC
+    order:
+      - file.name
+      - date
+      - file.mtime

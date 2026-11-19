@@ -13,7 +13,8 @@ tags:
 - [[Decisions/2026-11-16-בחירות-פתיחה|החלטות]] — כל החלטה ארכיטקטונית בפתק משלה
 - [[Sessions/2026-11-16|סיכומי סשנים]] — מה נעשה בכל סשן ומה פתוח
 - [[Specs/PRD-summary|Specs]] — סיכומי האפיון והפיצ'רים (המקור המלא: `docs/PRD.md`)
-- [[Decisions/2026-11-18-מבנה-אפליקציה|Architecture]] — מבנה הקוד (פירוט מלא ב-`CLAUDE.md`)
+- [[Architecture/ארכיטקטורה|Architecture]] — מפת הקוד לפי אזורים, מתעדכנת אוטומטית ([[Architecture/מפה.canvas|מפה ויזואלית]])
+- [[החלטות.base|טבלת החלטות]] · [[סשנים.base|טבלת סשנים]]
 
 ## קישורים
 - Repo: https://github.com/b8676544-code/kaminer.ai

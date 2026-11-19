@@ -1,0 +1,422 @@
+{
+	"nodes": [
+		{
+			"id": "6e672137b9e6b4aa",
+			"type": "group",
+			"x": -40,
+			"y": -60,
+			"width": 1400,
+			"height": 240,
+			"label": "דפים ו-API",
+			"color": "5"
+		},
+		{
+			"id": "4431d6269619b04b",
+			"type": "file",
+			"file": "Architecture/דפים.md",
+			"x": 0,
+			"y": 0,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "d0e765ee678555d7",
+			"type": "file",
+			"file": "Architecture/API.md",
+			"x": 360,
+			"y": 0,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "d0c4bb2386224685",
+			"type": "text",
+			"text": "**pg_cron**\nכל 10–15 דק׳ ← `/api/cron/*`\n(PRD §9.2, בענן)",
+			"x": 720,
+			"y": 0,
+			"width": 300,
+			"height": 140,
+			"color": "2"
+		},
+		{
+			"id": "4a8ed1391e34c2a9",
+			"type": "text",
+			"text": "**Google Calendar API**\nOAuth + sync token",
+			"x": 1040,
+			"y": 0,
+			"width": 280,
+			"height": 140,
+			"color": "2"
+		},
+		{
+			"id": "b7b82ea10bc20c6e",
+			"type": "group",
+			"x": -40,
+			"y": 240,
+			"width": 1760,
+			"height": 240,
+			"label": "תחומים · src/features",
+			"color": "4"
+		},
+		{
+			"id": "359330f7a24e7dd7",
+			"type": "file",
+			"file": "Architecture/התחברות.md",
+			"x": 0,
+			"y": 300,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "664fe8b0eeb7129e",
+			"type": "file",
+			"file": "Architecture/לקוחות.md",
+			"x": 340,
+			"y": 300,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "4844d596c91afe93",
+			"type": "file",
+			"file": "Architecture/משימות.md",
+			"x": 680,
+			"y": 300,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "97bee41905ec2ca5",
+			"type": "file",
+			"file": "Architecture/פרילנסרים.md",
+			"x": 1020,
+			"y": 300,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "80b8a6d4eb15ed7a",
+			"type": "file",
+			"file": "Architecture/משותף.md",
+			"x": 1360,
+			"y": 300,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "a3e15c74e5d4680a",
+			"type": "group",
+			"x": -40,
+			"y": 540,
+			"width": 720,
+			"height": 240,
+			"label": "ממשק",
+			"color": "6"
+		},
+		{
+			"id": "4d727ed843ed7137",
+			"type": "file",
+			"file": "Architecture/רכיבי layout.md",
+			"x": 0,
+			"y": 600,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "7964758d02000eb3",
+			"type": "file",
+			"file": "Architecture/רכיבי ui.md",
+			"x": 340,
+			"y": 600,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "59c80c45622e56f8",
+			"type": "group",
+			"x": 760,
+			"y": 540,
+			"width": 720,
+			"height": 240,
+			"label": "תשתית",
+			"color": "3"
+		},
+		{
+			"id": "16d6d7d3f988eb57",
+			"type": "file",
+			"file": "Architecture/Supabase ו-Auth.md",
+			"x": 800,
+			"y": 600,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "d74b1314b3183f41",
+			"type": "file",
+			"file": "Architecture/Google.md",
+			"x": 1140,
+			"y": 600,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "09e892671e5ff66f",
+			"type": "group",
+			"x": -40,
+			"y": 840,
+			"width": 1400,
+			"height": 240,
+			"label": "נתונים",
+			"color": "1"
+		},
+		{
+			"id": "c8d058ba6d7410ad",
+			"type": "file",
+			"file": "Architecture/מסד נתונים.md",
+			"x": 360,
+			"y": 900,
+			"width": 400,
+			"height": 140
+		},
+		{
+			"id": "4487a822b80cc284",
+			"type": "text",
+			"text": "**עוד לא נבנה:** קטלוג · שעון · יומן · היום שלי",
+			"x": 800,
+			"y": 900,
+			"width": 360,
+			"height": 140
+		},
+		{
+			"id": "b71e9849c0ebbbb8",
+			"type": "group",
+			"x": 1520,
+			"y": 540,
+			"width": 400,
+			"height": 540,
+			"label": "כלים",
+			"color": "5"
+		},
+		{
+			"id": "28ed939ee5dc4ef1",
+			"type": "file",
+			"file": "Architecture/בדיקות.md",
+			"x": 1560,
+			"y": 600,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "456391b1e0693a93",
+			"type": "file",
+			"file": "Architecture/תשתית Claude.md",
+			"x": 1560,
+			"y": 780,
+			"width": 300,
+			"height": 140
+		},
+		{
+			"id": "8bfe23b647dbf906",
+			"type": "file",
+			"file": "Architecture/הגדרות פרויקט.md",
+			"x": 1560,
+			"y": 940,
+			"width": 300,
+			"height": 110
+		},
+		{
+			"id": "660e7fa7871dfd74",
+			"type": "file",
+			"file": "Architecture/ארכיטקטורה.md",
+			"x": -400,
+			"y": 300,
+			"width": 300,
+			"height": 140
+		}
+	],
+	"edges": [
+		{
+			"id": "486f8d1e14090d05",
+			"fromNode": "4431d6269619b04b",
+			"fromSide": "bottom",
+			"toNode": "4844d596c91afe93",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "c096689360761d53",
+			"fromNode": "4431d6269619b04b",
+			"fromSide": "bottom",
+			"toNode": "664fe8b0eeb7129e",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "f04987fbe4c88848",
+			"fromNode": "4431d6269619b04b",
+			"fromSide": "bottom",
+			"toNode": "97bee41905ec2ca5",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "3e3f22a492636285",
+			"fromNode": "4431d6269619b04b",
+			"fromSide": "bottom",
+			"toNode": "359330f7a24e7dd7",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "db2e1a3f7fd1757e",
+			"fromNode": "4431d6269619b04b",
+			"fromSide": "left",
+			"toNode": "4d727ed843ed7137",
+			"toSide": "left",
+			"toEnd": "arrow",
+			"label": "מעטפת"
+		},
+		{
+			"id": "65490017fe2c1e6d",
+			"fromNode": "d0e765ee678555d7",
+			"fromSide": "bottom",
+			"toNode": "16d6d7d3f988eb57",
+			"toSide": "top",
+			"toEnd": "arrow",
+			"label": "auth callback"
+		},
+		{
+			"id": "85030421130a3b1e",
+			"fromNode": "d0e765ee678555d7",
+			"fromSide": "bottom",
+			"toNode": "d74b1314b3183f41",
+			"toSide": "top",
+			"toEnd": "arrow",
+			"label": "oauth, sync"
+		},
+		{
+			"id": "2e378ffca4e87be0",
+			"fromNode": "d0c4bb2386224685",
+			"fromSide": "left",
+			"toNode": "d0e765ee678555d7",
+			"toSide": "right",
+			"toEnd": "arrow",
+			"label": "CRON_SECRET"
+		},
+		{
+			"id": "fdc829d6ad1d7448",
+			"fromNode": "d74b1314b3183f41",
+			"fromSide": "right",
+			"toNode": "4a8ed1391e34c2a9",
+			"toSide": "left",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "063a7f25a89be788",
+			"fromNode": "664fe8b0eeb7129e",
+			"fromSide": "bottom",
+			"toNode": "c8d058ba6d7410ad",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "ce70539a77978142",
+			"fromNode": "4844d596c91afe93",
+			"fromSide": "bottom",
+			"toNode": "c8d058ba6d7410ad",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "edbbf065fcc2db97",
+			"fromNode": "97bee41905ec2ca5",
+			"fromSide": "bottom",
+			"toNode": "c8d058ba6d7410ad",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "052a70ecbf79e493",
+			"fromNode": "664fe8b0eeb7129e",
+			"fromSide": "right",
+			"toNode": "4844d596c91afe93",
+			"toSide": "left",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "4273b0bae9238e9d",
+			"fromNode": "97bee41905ec2ca5",
+			"fromSide": "left",
+			"toNode": "4844d596c91afe93",
+			"toSide": "right",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "e825aa1117bafd4b",
+			"fromNode": "4844d596c91afe93",
+			"fromSide": "top",
+			"toNode": "80b8a6d4eb15ed7a",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "b43a03e6f67c5a02",
+			"fromNode": "80b8a6d4eb15ed7a",
+			"fromSide": "bottom",
+			"toNode": "7964758d02000eb3",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "ef9ee165449f60f7",
+			"fromNode": "4d727ed843ed7137",
+			"fromSide": "right",
+			"toNode": "7964758d02000eb3",
+			"toSide": "left",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "33f031fbc2dfb949",
+			"fromNode": "359330f7a24e7dd7",
+			"fromSide": "bottom",
+			"toNode": "16d6d7d3f988eb57",
+			"toSide": "top",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "b4f4ce72dda273b7",
+			"fromNode": "16d6d7d3f988eb57",
+			"fromSide": "bottom",
+			"toNode": "c8d058ba6d7410ad",
+			"toSide": "top",
+			"toEnd": "arrow",
+			"label": "RLS"
+		},
+		{
+			"id": "ca480d232bf9dd28",
+			"fromNode": "d74b1314b3183f41",
+			"fromSide": "bottom",
+			"toNode": "c8d058ba6d7410ad",
+			"toSide": "top",
+			"toEnd": "arrow",
+			"label": "meetings, tokens"
+		},
+		{
+			"id": "eb529f86b80f9416",
+			"fromNode": "456391b1e0693a93",
+			"fromSide": "top",
+			"toNode": "28ed939ee5dc4ef1",
+			"toSide": "bottom",
+			"toEnd": "arrow",
+			"label": "vault-sync test"
+		},
+		{
+			"id": "9ef8a8c52bd07f9e",
+			"fromNode": "660e7fa7871dfd74",
+			"fromSide": "right",
+			"toNode": "359330f7a24e7dd7",
+			"toSide": "left",
+			"toEnd": "arrow"
+		}
+	]
+}

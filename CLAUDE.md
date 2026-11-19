@@ -39,6 +39,7 @@
 
 ## Vault (Obsidian)
 - לסקירה: קרא את `Vault/Home.md` ואת הסיכום האחרון ב-`Vault/Sessions/` לפני שאתה סורק קוד.
+- `Vault/Architecture/`: פתק לכל אזור בקוד. ה-hook ‏`.claude/hooks/vault-sync.mjs` מעדכן רק את הבלוק `auto:start`–`auto:end`, ואת שאר הטקסט כותבים ידנית.
 - אחרי החלטה ארכיטקטונית: כתוב פתק ב-`Vault/Decisions/` (‏`YYYY-MM-DD-נושא.md`: הקשר, החלטה, חלופות שנדחו).
 - בסוף סשן משמעותי או לפני `/clear`: כתוב סיכום ב-`Vault/Sessions/YYYY-MM-DD.md` (מה נעשה, קבצים, מה פתוח).
 
