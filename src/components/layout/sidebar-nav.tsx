@@ -1,18 +1,36 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./nav-items";
 
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname();
+type Props = { onNavigate?: () => void };
 
+// usePathname הוא נתון של זמן ריצה, ולכן חייב <Suspense> (cacheComponents).
+// עד שהוא זמין מוצגים אותם קישורים בלי סימון של הדף הנוכחי.
+export function SidebarNav(props: Props) {
+  return (
+    <Suspense fallback={<NavLinks {...props} pathname={null} />}>
+      <ActiveNavLinks {...props} />
+    </Suspense>
+  );
+}
+
+function ActiveNavLinks(props: Props) {
+  const pathname = usePathname();
+  return <NavLinks {...props} pathname={pathname} />;
+}
+
+function NavLinks({ onNavigate, pathname }: Props & { pathname: string | null }) {
   return (
     <nav aria-label="ניווט ראשי" className="grid gap-1">
       {NAV_ITEMS.map(({ href, label, icon: Icon, soon }) => {
-        const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+        const active =
+          pathname !== null &&
+          (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
         return (
           <Link
             key={href}
