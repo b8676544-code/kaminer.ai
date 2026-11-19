@@ -44,7 +44,11 @@ function NavLinks({ onNavigate, pathname }: Props & { pathname: string | null })
           >
             <Icon className="size-4" aria-hidden />
             <span className="flex-1">{label}</span>
-            {soon && <span className="text-[10px] opacity-70">בקרוב</span>}
+            {soon && (
+              <span className="text-[10px] opacity-70">
+                <span className="sr-only">, </span>בקרוב
+              </span>
+            )}
           </Link>
         );
       })}
