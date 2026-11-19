@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "supabase-local": {
+      "type": "http",
+      "url": "http://localhost:54321/mcp"
+    },
+    "next-devtools": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "next-devtools-mcp@latest"]
+    }
+  }
+}

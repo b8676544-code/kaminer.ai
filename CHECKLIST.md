@@ -31,7 +31,7 @@
 - [x] S1 · אפיון PRD 🔒
 - [x] S2b · מבנה האפליקציה לפי האפיון 🔒
 - [x] S4 · todo.md למשימות עתידיות
-- [ ] S5 · MCPs לפרויקט 🔒
+- [x] S5 · MCPs לפרויקט 🔒
 - [ ] S6 · תכנון ריצה בענן 24/7
 - [ ] S7b · מיפוי ל-Vault + Hook סנכרון 🔒
 
@@ -68,3 +68,5 @@
 | 18.11.2026 | S1 | נכתב ואושר docs/PRD.md (גרסה 1.1): משתמשת יחידה ופרילנסרים כרשומות, קטלוג תבניות, Google Calendar דו־כיווני ב-MVP, ריצה מקומית על Supabase+Docker |
 | 18.11.2026 | S2b | הוקם שלד Next.js 16 + Supabase + shadcn ‏(RTL, ‏Heebo), תיקיות לפי האפיון, סקריפטים, CLAUDE.md. ‏dev/build/lint עוברים. פתוח: התקנת Docker ובדיקת `npm run db:start` |
 | 18.11.2026 | S4 | נוצר todo.md עם פריטי שלב ב׳ מה-PRD ומשימת Docker הפתוחה מ-S2b (עדיפות גבוהה), ונוסף ל-CLAUDE.md סעיף "משימות עתידיות" |
+| 18.11.2026 | S5 | נוסף .mcp.json לפרויקט: supabase-local ‏(http://localhost:54321/mcp, פעיל אחרי db:start) ו-next-devtools. ‏GitHub MCP נדחה (אין צורך, דורש טוקן). connectors של החשבון (Gmail, ‏Drive, ‏Hugging Face) נשארו פעילים לבקשת המשתמשת, כי המתג גלובלי |
+| 19.11.2026 | — | הותקנו WSL 2 ו-Docker Desktop 4.99, ‏`npm run db:start` עובד, ‏MCP של Supabase המקומי עונה ב-54321/mcp. נוצר `.env` מקומי (ב-gitignore) עם ערכי Supabase המקומי |
