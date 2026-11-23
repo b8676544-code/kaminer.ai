@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ProjectStatus } from "./schemas";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
@@ -42,6 +43,31 @@ export async function listClientProjects(clientId: string) {
 }
 
 export type ClientProject = Awaited<ReturnType<typeof listClientProjects>>[number];
+
+// מסך "פרויקטים": כל הפרויקטים, עם לקוח, ספירת משימות ושעות לחיוב
+export async function listProjects(status: ProjectStatus | "all") {
+  const supabase = await createClient();
+  let query = supabase
+    .from("projects")
+    .select(`${PROJECT_LIST_SELECT}, client_id, clients(name), tasks(status)`)
+    .order("end_date", { ascending: true, nullsFirst: false })
+    .order("name");
+  if (status !== "all") query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw error;
+  const minutes = await billableMinutesByProject(
+    supabase,
+    data.map((p) => p.id),
+  );
+  return data.map(({ tasks, ...p }) => ({
+    ...p,
+    taskCount: tasks.length,
+    openTaskCount: tasks.filter((t) => t.status !== "done").length,
+    billableMinutes: minutes.get(p.id) ?? 0,
+  }));
+}
+
+export type ProjectListItem = Awaited<ReturnType<typeof listProjects>>[number];
 
 export async function getProject(id: string) {
   const supabase = await createClient();

@@ -15,16 +15,20 @@ export function TaskFiltersBar({
   filters,
   clients,
   freelancers,
+  projects,
 }: {
   filters: TaskFilters;
   clients: Option[];
   freelancers: Option[];
+  projects: Option[];
 }) {
-  const hasFilters = Boolean(filters.client || filters.category || filters.status || filters.freelancer);
+  const hasFilters = Boolean(
+    filters.client || filters.category || filters.status || filters.freelancer || filters.project,
+  );
   const submit = (e: React.ChangeEvent<HTMLSelectElement>) => e.currentTarget.form?.requestSubmit();
 
   return (
-    <Form action="/tasks" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
+    <Form action="/tasks" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
       {filters.view === "board" && <input type="hidden" name="view" value="board" />}
       <div className="grid gap-1.5">
         <Label htmlFor="f-status">סטטוס</Label>
@@ -60,6 +64,19 @@ export function TaskFiltersBar({
           ))}
         </NativeSelect>
       </div>
+      {(projects.length > 0 || filters.project) && (
+        <div className="grid gap-1.5">
+          <Label htmlFor="f-project">פרויקט</Label>
+          <NativeSelect id="f-project" name="project" defaultValue={filters.project ?? ""} onChange={submit}>
+            <option value="">הכול</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </NativeSelect>
+        </div>
+      )}
       <div className="grid gap-1.5">
         <Label htmlFor="f-freelancer">פרילנסר</Label>
         <NativeSelect id="f-freelancer" name="freelancer" defaultValue={filters.freelancer ?? ""} onChange={submit}>

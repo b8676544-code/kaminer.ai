@@ -1,6 +1,7 @@
 import {
   BriefcaseIcon,
   CalendarIcon,
+  FolderKanbanIcon,
   HomeIcon,
   LayoutListIcon,
   LibraryIcon,
@@ -15,8 +16,9 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "היום שלי", icon: HomeIcon },
   { href: "/tasks", label: "משימות", icon: LayoutListIcon },
   { href: "/clients", label: "לקוחות", icon: BriefcaseIcon },
+  { href: "/projects", label: "פרויקטים", icon: FolderKanbanIcon },
   { href: "/freelancers", label: "פרילנסרים", icon: UsersIcon },
-  { href: "/catalog", label: "קטלוג", icon: LibraryIcon, soon: true },
-  { href: "/calendar", label: "יומן", icon: CalendarIcon, soon: true },
-  { href: "/settings", label: "הגדרות", icon: SettingsIcon, soon: true },
+  { href: "/catalog", label: "קטלוג", icon: LibraryIcon },
+  { href: "/calendar", label: "יומן", icon: CalendarIcon },
+  { href: "/settings", label: "הגדרות", icon: SettingsIcon },
 ];

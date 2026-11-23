@@ -26,7 +26,7 @@ export async function saveProject(_prev: ActionState, formData: FormData): Promi
   if (error) return { error: dbErrorMessage(error), values: raw };
 
   revalidatePath(`/clients/${parsed.data.client_id}`);
-  revalidatePath(`/projects/${data.id}`);
+  revalidatePath("/projects", "layout");
   return { ok: true, id: data.id };
 }
 
@@ -58,5 +58,6 @@ export async function lockComputedPrice(entity: "project" | "task", entityId: st
 
   revalidatePath(entity === "project" ? `/projects/${id.data}` : `/tasks/${id.data}`);
   revalidatePath("/clients", "layout");
+  revalidatePath("/projects", "layout");
   return { ok: true };
 }

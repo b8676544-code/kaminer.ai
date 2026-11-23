@@ -33,14 +33,20 @@ export type ProjectFormValues = Pricing & {
   end_date: string | null;
 };
 
+export type ProjectClientOption = { id: string; name: string; hourly_rate: number | null };
+
+// clientId: פרויקט של לקוח ידוע (מדף הלקוח או עריכה).
+// clients: בלי clientId בוחרים לקוח בטופס (ממסך הפרויקטים).
 export function ProjectFormDialog({
   clientId,
-  clientRate,
+  clientRate = null,
+  clients = [],
   project,
   trigger,
 }: {
-  clientId: string;
-  clientRate: number | null;
+  clientId?: string;
+  clientRate?: number | null;
+  clients?: ProjectClientOption[];
   project?: ProjectFormValues;
   trigger: React.ReactNode;
 }) {
@@ -54,7 +60,13 @@ export function ProjectFormDialog({
           <DialogDescription>פרויקט מקבץ כמה משימות של הלקוח, עם תמחור אחד לכולן.</DialogDescription>
         </DialogHeader>
         {open && (
-          <ProjectForm clientId={clientId} clientRate={clientRate} project={project} onDone={() => setOpen(false)} />
+          <ProjectForm
+            clientId={clientId}
+            clientRate={clientRate}
+            clients={clients}
+            project={project}
+            onDone={() => setOpen(false)}
+          />
         )}
       </DialogContent>
     </Dialog>
@@ -70,11 +82,13 @@ function numberValue(sent: string | undefined, fallback: number | null): number 
 function ProjectForm({
   clientId,
   clientRate,
+  clients,
   project,
   onDone,
 }: {
-  clientId: string;
+  clientId?: string;
   clientRate: number | null;
+  clients: ProjectClientOption[];
   project?: ProjectFormValues;
   onDone: () => void;
 }) {
@@ -82,6 +96,9 @@ function ProjectForm({
   const [state, action, pending] = useActionState<ActionState, FormData>(saveProject, {});
   const fe = state.fieldErrors ?? {};
   const v = state.values;
+  const [pickedClient, setPickedClient] = useState(v?.client_id ?? "");
+  const selectedClientId = clientId ?? pickedClient;
+  const rate = clientId ? clientRate : (clients.find((c) => c.id === pickedClient)?.hourly_rate ?? null);
 
   useEffect(() => {
     if (state.ok) {
@@ -100,7 +117,25 @@ function ProjectForm({
 
   return (
     <form action={action} className="grid gap-4">
-      <input type="hidden" name="client_id" value={clientId} />
+      {clientId ? (
+        <input type="hidden" name="client_id" value={clientId} />
+      ) : (
+        <Field id="project-client" label="לקוח" error={fe.client_id} required>
+          <NativeSelect
+            name="client_id"
+            value={pickedClient}
+            onChange={(e) => setPickedClient(e.target.value)}
+            required
+          >
+            <option value="">בחירת לקוח</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </NativeSelect>
+        </Field>
+      )}
       {project && <input type="hidden" name="id" value={project.id} />}
       <Field id="project-name" label="שם הפרויקט" error={fe.name} required>
         <Input name="name" defaultValue={v?.name ?? project?.name} required maxLength={200} autoFocus />
@@ -127,7 +162,7 @@ function ProjectForm({
           </Field>
         )}
       </div>
-      <PricingFields idPrefix="project" values={pricing} defaultRate={clientRate} errors={fe} />
+      <PricingFields key={selectedClientId} idPrefix="project" values={pricing} defaultRate={rate} errors={fe} />
       {state.error && (
         <p role="alert" className="text-destructive text-sm">
           {state.error}

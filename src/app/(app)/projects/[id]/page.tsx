@@ -35,15 +35,17 @@ async function ProjectDetails({ params }: Pick<PageProps<"/projects/[id]">, "par
 
   return (
     <div className="grid gap-6">
-      {client && (
-        <Link
-          href={`/clients/${client.id}`}
-          className="text-muted-foreground flex w-fit items-center gap-1 text-sm hover:underline"
-        >
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 text-sm">
+        <Link href="/projects" className="flex w-fit items-center gap-1 hover:underline">
           <ChevronRightIcon className="size-4" aria-hidden />
-          {client.name}
+          כל הפרויקטים
         </Link>
-      )}
+        {client && (
+          <Link href={`/clients/${client.id}`} className="hover:underline">
+            · {client.name}
+          </Link>
+        )}
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">{project.name}</h1>

@@ -129,3 +129,11 @@ describe("משימה: פרויקט ותמחור", () => {
     expect(r.success).toBe(false);
   });
 });
+
+describe("סינון משימות לפי פרויקט", () => {
+  it("מזהה תקין נשמר, ולא תקין נזרק בשקט", async () => {
+    const { taskFiltersSchema } = await import("@/features/tasks/schemas");
+    expect(taskFiltersSchema.parse({ project: PROJECT }).project).toBe(PROJECT);
+    expect(taskFiltersSchema.parse({ project: "abc" }).project).toBeUndefined();
+  });
+});

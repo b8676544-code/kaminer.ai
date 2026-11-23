@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { TaskFilters } from "./schemas";
 
 const LIST_SELECT =
-  "id, title, category, status, priority, due_date, estimate_minutes, client_id, assignee_freelancer_id, clients(name), freelancers(full_name)";
+  "id, title, category, status, priority, due_date, estimate_minutes, client_id, assignee_freelancer_id, project_id, clients(name), freelancers(full_name), projects(name)";
 
 export async function listTasks(filters: TaskFilters) {
   const supabase = await createClient();
@@ -13,6 +13,7 @@ export async function listTasks(filters: TaskFilters) {
   if (filters.client) query = query.eq("client_id", filters.client);
   if (filters.category) query = query.eq("category", filters.category);
   if (filters.freelancer) query = query.eq("assignee_freelancer_id", filters.freelancer);
+  if (filters.project) query = query.eq("project_id", filters.project);
   if (filters.status === "open") query = query.neq("status", "done");
   else if (filters.status) query = query.eq("status", filters.status);
 

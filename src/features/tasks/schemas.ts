@@ -92,6 +92,7 @@ export const taskFiltersSchema = z.object({
   category: taskCategorySchema.optional().catch(undefined),
   status: z.union([taskStatusSchema, z.literal("open")]).optional().catch(undefined),
   freelancer: z.guid().optional().catch(undefined),
+  project: z.guid().optional().catch(undefined),
   view: z.enum(["list", "board"]).optional().catch(undefined),
 });
 

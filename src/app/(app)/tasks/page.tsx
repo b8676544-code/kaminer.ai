@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listActiveClientOptions } from "@/features/clients/queries";
 import { listActiveFreelancerOptions } from "@/features/freelancers/queries";
+import { listProjectOptions } from "@/features/projects/queries";
 import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
 import { CategoryBadge, PriorityBadge, StatusBadge } from "@/features/tasks/badges";
 import { KanbanBoard } from "@/features/tasks/kanban-board";
@@ -39,7 +40,7 @@ export default function TasksPage({ searchParams }: PageProps<"/tasks">) {
 
 function toQuery(filters: TaskFilters, view: "list" | "board") {
   const params = new URLSearchParams();
-  for (const key of ["status", "category", "client", "freelancer"] as const) {
+  for (const key of ["status", "category", "client", "freelancer", "project"] as const) {
     const value = filters[key];
     if (value) params.set(key, value);
   }
@@ -55,16 +56,19 @@ async function TasksView({ searchParams }: Pick<PageProps<"/tasks">, "searchPara
     category: raw.category,
     status: raw.status,
     freelancer: raw.freelancer,
+    project: raw.project,
     view: raw.view,
   });
   const view = filters.view ?? "list";
 
-  const [tasks, clients, freelancers, running] = await Promise.all([
+  const [tasks, clients, freelancers, running, projects] = await Promise.all([
     // בקנבן הסטטוס הוא העמודות, ולכן לא מסננים לפיו
     listTasks(view === "board" ? { ...filters, status: undefined } : filters),
     listActiveClientOptions(),
     listActiveFreelancerOptions(),
     getRunningTimer(),
+    // פרויקט שנבחר בסינון נשאר ברשימה גם אם הסתיים
+    listProjectOptions(filters.project),
   ]);
   const today = todayInJerusalem();
 
@@ -76,6 +80,7 @@ async function TasksView({ searchParams }: Pick<PageProps<"/tasks">, "searchPara
             filters={filters}
             clients={clients}
             freelancers={freelancers.map((f) => ({ id: f.id, name: f.full_name }))}
+            projects={projects}
           />
         </div>
         <nav aria-label="תצוגה" className="bg-muted inline-flex rounded-lg p-1 text-sm">
@@ -163,6 +168,14 @@ function TasksTable({ tasks, today, running }: { tasks: TaskListItem[]; today: s
                     </Link>
                   ) : (
                     "—"
+                  )}
+                  {t.projects && t.project_id && (
+                    <Link
+                      href={`/projects/${t.project_id}`}
+                      className="text-muted-foreground block text-xs hover:underline"
+                    >
+                      {t.projects.name}
+                    </Link>
                   )}
                 </TableCell>
                 <TableCell>

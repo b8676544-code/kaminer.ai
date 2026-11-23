@@ -68,7 +68,13 @@ export function TaskForm({
   const fe = state.fieldErrors ?? {};
   const isPersonal = category === "personal";
   const isNew = !task.id;
-  const clientProjects = projects.filter((p) => p.client_id === clientId);
+  // פרויקט שהלקוח שלו לא ברשימה (למשל בארכיון) לא מוצע, חוץ מהפרויקט שכבר משויך
+  const selectableProjects = projects.filter(
+    (p) => p.id === task.project_id || clients.some((c) => c.id === p.client_id),
+  );
+  // בלי לקוח: כל הפרויקטים, ובחירת פרויקט ממלאת את הלקוח. עם לקוח: רק הפרויקטים שלו
+  const projectChoices = clientId ? selectableProjects.filter((p) => p.client_id === clientId) : selectableProjects;
+  const clientName = (id: string) => clients.find((c) => c.id === id)?.name;
   const clientRate = clients.find((c) => c.id === clientId)?.hourly_rate ?? null;
 
   return (
@@ -113,13 +119,23 @@ export function TaskForm({
           </Field>
         )}
 
-        {!isPersonal && clientId && (clientProjects.length > 0 || projectId) && (
+        {!isPersonal && (projectChoices.length > 0 || projectId) && (
           <Field id="project_id" label="פרויקט" error={fe.project_id}>
-            <NativeSelect name="project_id" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+            <NativeSelect
+              name="project_id"
+              value={projectId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setProjectId(id);
+                const chosen = projects.find((p) => p.id === id);
+                if (chosen) setClientId(chosen.client_id);
+              }}
+            >
               <option value="">ללא פרויקט</option>
-              {clientProjects.map((p) => (
+              {projectChoices.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
+                  {!clientId && clientName(p.client_id) ? ` (${clientName(p.client_id)})` : ""}
                 </option>
               ))}
             </NativeSelect>
