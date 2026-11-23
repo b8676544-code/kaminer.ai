@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { meetingsOnDay } from "./calendar-range";
-import { calendarHref, timeOf, WEEKDAY_SHORT } from "./labels";
+import { calendarHref, timeOf, WEEKDAY_SHORT, meetingTone } from "./labels";
 import type { MeetingItem } from "./queries";
 
 const MAX_PER_DAY = 3;
@@ -72,7 +72,7 @@ export function MonthView({
                         }}
                         className={cn(
                           "flex items-center gap-1 truncate rounded px-1 py-0.5 text-start text-xs",
-                          m.is_all_day ? "bg-primary/15 hover:bg-primary/25" : "hover:bg-muted",
+                          m.is_all_day || m.is_personal ? meetingTone(m).chip : "hover:bg-muted",
                         )}
                       >
                         {!m.is_all_day && (

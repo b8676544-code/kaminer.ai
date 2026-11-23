@@ -24,7 +24,9 @@ export type ClientFormValues = {
   name: string;
   contact_name: string | null;
   phone: string | null;
+  mobile: string | null;
   email: string | null;
+  website: string | null;
   notes: string | null;
   hourly_rate: number | null;
 };
@@ -67,14 +69,27 @@ function ClientForm({ client, onDone }: { client?: ClientFormValues; onDone: () 
         <Field id="contact_name" label="איש קשר" error={fe.contact_name}>
           <Input name="contact_name" defaultValue={client?.contact_name ?? ""} />
         </Field>
+        <Field id="mobile" label="נייד" error={fe.mobile}>
+          <Input name="mobile" type="tel" dir="ltr" defaultValue={client?.mobile ?? ""} />
+        </Field>
         <Field id="phone" label="טלפון" error={fe.phone}>
           <Input name="phone" type="tel" dir="ltr" defaultValue={client?.phone ?? ""} />
         </Field>
         <Field id="email" label="מייל" error={fe.email}>
           <Input name="email" type="email" dir="ltr" defaultValue={client?.email ?? ""} />
         </Field>
+        <Field id="website" label="אתר" error={fe.website}>
+          <Input name="website" dir="ltr" placeholder="example.co.il" defaultValue={client?.website ?? ""} />
+        </Field>
         <Field id="hourly_rate" label="תעריף לשעה (₪)" error={fe.hourly_rate}>
-          <Input name="hourly_rate" type="number" min={0} step="0.01" dir="ltr" defaultValue={client?.hourly_rate ?? ""} />
+          <Input
+            name="hourly_rate"
+            type="number"
+            min={0}
+            step="0.01"
+            dir="ltr"
+            defaultValue={client?.hourly_rate ?? ""}
+          />
         </Field>
       </div>
       <Field id="notes" label="הערות" error={fe.notes}>

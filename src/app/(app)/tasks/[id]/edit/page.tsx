@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { listActiveClientOptions } from "@/features/clients/queries";
 import { listActiveFreelancerOptions } from "@/features/freelancers/queries";
+import { listProjectOptions } from "@/features/projects/queries";
 import { getTask } from "@/features/tasks/queries";
 import { TaskForm } from "@/features/tasks/task-form";
 
@@ -29,16 +30,22 @@ async function EditTaskForm({ params }: Pick<PageProps<"/tasks/[id]/edit">, "par
   ]);
   if (!details) notFound();
   const { task } = details;
+  // פרויקט שכבר משויך נשאר ברשימה גם אם הסתיים
+  const projects = await listProjectOptions(task.project_id);
 
   // לקוח בארכיון או פרילנסר לא פעיל שכבר משויכים: נשארים ברשימה כדי שלא יימחקו בשמירה
   const clientOptions = [...clients];
   if (task.clients && !clientOptions.some((c) => c.id === task.clients!.id)) {
-    clientOptions.push({ id: task.clients.id, name: `${task.clients.name} (ארכיון)` });
+    clientOptions.push({
+      id: task.clients.id,
+      name: `${task.clients.name} (ארכיון)`,
+      hourly_rate: task.clients.hourly_rate,
+    });
   }
   const freelancerOptions = freelancers.map((f) => ({ id: f.id, name: f.full_name }));
   if (task.freelancers && !freelancerOptions.some((f) => f.id === task.freelancers!.id)) {
     freelancerOptions.push({ id: task.freelancers.id, name: `${task.freelancers.full_name} (לא פעיל)` });
   }
 
-  return <TaskForm task={task} clients={clientOptions} freelancers={freelancerOptions} />;
+  return <TaskForm task={task} clients={clientOptions} freelancers={freelancerOptions} projects={projects} />;
 }

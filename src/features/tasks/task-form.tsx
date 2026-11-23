@@ -9,6 +9,8 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/features/shared/field";
 import type { ActionState } from "@/features/shared/form";
+import type { Pricing } from "@/features/shared/pricing";
+import { PricingFields } from "@/features/shared/pricing-fields";
 import {
   CATEGORY_LABELS,
   PRIORITY_LABELS,
@@ -34,28 +36,40 @@ export type TaskFormValues = {
   estimate_minutes: number | null;
   assignee_freelancer_id: string | null;
   freelancer_cost: number | null;
+  project_id: string | null;
+  pricing_type: Pricing["pricing_type"];
+  hourly_rate: number | null;
+  final_price: number | null;
   // ביצירה מתבנית בלבד
   template_id?: string | null;
   checklist?: string[];
 };
 
 type Option = { id: string; name: string };
+type ClientOption = Option & { hourly_rate: number | null };
+type ProjectOption = Option & { client_id: string };
 
 export function TaskForm({
   task,
   clients,
   freelancers,
+  projects,
 }: {
   task: TaskFormValues;
-  clients: Option[];
+  clients: ClientOption[];
   freelancers: Option[];
+  projects: ProjectOption[];
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(saveTask, {});
   const [category, setCategory] = useState<TaskCategory>(task.category);
   const [freelancerId, setFreelancerId] = useState(task.assignee_freelancer_id ?? "");
+  const [clientId, setClientId] = useState(task.client_id ?? "");
+  const [projectId, setProjectId] = useState(task.project_id ?? "");
   const fe = state.fieldErrors ?? {};
   const isPersonal = category === "personal";
   const isNew = !task.id;
+  const clientProjects = projects.filter((p) => p.client_id === clientId);
+  const clientRate = clients.find((c) => c.id === clientId)?.hourly_rate ?? null;
 
   return (
     <form action={action} className="grid max-w-2xl gap-5">
@@ -79,11 +93,33 @@ export function TaskForm({
 
         {!isPersonal && (
           <Field id="client_id" label="לקוח" error={fe.client_id} required={category === "clients"}>
-            <NativeSelect name="client_id" defaultValue={task.client_id ?? ""} required={category === "clients"}>
+            <NativeSelect
+              name="client_id"
+              value={clientId}
+              required={category === "clients"}
+              onChange={(e) => {
+                setClientId(e.target.value);
+                // פרויקט שייך ללקוח אחד: החלפת לקוח מנקה את הפרויקט
+                setProjectId("");
+              }}
+            >
               <option value="">{category === "clients" ? "בחרי לקוח" : "ללא לקוח"}</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+        )}
+
+        {!isPersonal && clientId && (clientProjects.length > 0 || projectId) && (
+          <Field id="project_id" label="פרויקט" error={fe.project_id}>
+            <NativeSelect name="project_id" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+              <option value="">ללא פרויקט</option>
+              {clientProjects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
                 </option>
               ))}
             </NativeSelect>
@@ -157,6 +193,19 @@ export function TaskForm({
           </>
         )}
       </div>
+
+      {!isPersonal &&
+        (projectId ? (
+          <p className="text-muted-foreground text-sm">המשימה מתומחרת במסגרת הפרויקט, ולכן אין לה תמחור נפרד.</p>
+        ) : (
+          <PricingFields
+            key={clientId}
+            idPrefix="task"
+            values={{ pricing_type: task.pricing_type, hourly_rate: task.hourly_rate, final_price: task.final_price }}
+            defaultRate={clientRate}
+            errors={fe}
+          />
+        ))}
 
       <Field id="description" label="תיאור" error={fe.description}>
         <Textarea name="description" rows={4} defaultValue={task.description ?? ""} />

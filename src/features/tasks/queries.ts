@@ -31,7 +31,7 @@ export async function getTask(id: string) {
   const [taskRes, checklistRes, notesRes, summaryRes, entriesRes] = await Promise.all([
     supabase
       .from("tasks")
-      .select("*, clients(id, name), freelancers(id, full_name), task_templates(id, title)")
+      .select("*, clients(id, name, hourly_rate), freelancers(id, full_name), task_templates(id, title), projects(id, name)")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("task_checklist_items").select("id, text, is_done, position").eq("task_id", id).order("position"),

@@ -8,9 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArchiveButton } from "@/features/clients/archive-button";
 import { ClientFormDialog } from "@/features/clients/client-form-dialog";
+import { ClientContacts } from "@/features/clients/contacts";
 import { getClientDetails } from "@/features/clients/queries";
 import { calendarHref, timeRange } from "@/features/meetings/labels";
 import { listClientMeetings, type ClientMeeting } from "@/features/meetings/queries";
+import { ProjectFormDialog } from "@/features/projects/project-form-dialog";
+import { listClientProjects, type ClientProject } from "@/features/projects/queries";
+import { PROJECT_STATUS_LABELS } from "@/features/projects/schemas";
+import { computePrice, formatMoney, PRICING_LABELS } from "@/features/shared/pricing";
 import { formatDate, formatMinutes, formatMonth, isoToJerusalem } from "@/features/shared/format";
 import { PriorityBadge, StatusBadge } from "@/features/tasks/badges";
 
@@ -27,9 +32,13 @@ export default function ClientPage({ params }: PageProps<"/clients/[id]">) {
 async function ClientDetails({ params }: Pick<PageProps<"/clients/[id]">, "params">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [details, meetings] = await Promise.all([getClientDetails(id), listClientMeetings(id)]);
+  const [details, meetings, projects] = await Promise.all([
+    getClientDetails(id),
+    listClientMeetings(id),
+    listClientProjects(id),
+  ]);
   if (!details) notFound();
-  const { client, openTasks, doneTasks, monthlyHours } = details;
+  const { client, openTasks, doneTasks, monthlyHours, contacts } = details;
 
   return (
     <div className="grid gap-6">
@@ -70,6 +79,10 @@ async function ClientDetails({ params }: Pick<PageProps<"/clients/[id]">, "param
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               <dt className="text-muted-foreground">איש קשר</dt>
               <dd>{client.contact_name ?? "—"}</dd>
+              <dt className="text-muted-foreground">נייד</dt>
+              <dd dir="ltr" className="text-end">
+                {client.mobile ? <a href={`tel:${client.mobile}`}>{client.mobile}</a> : "—"}
+              </dd>
               <dt className="text-muted-foreground">טלפון</dt>
               <dd dir="ltr" className="text-end">
                 {client.phone ? <a href={`tel:${client.phone}`}>{client.phone}</a> : "—"}
@@ -78,10 +91,21 @@ async function ClientDetails({ params }: Pick<PageProps<"/clients/[id]">, "param
               <dd dir="ltr" className="text-end">
                 {client.email ? <a href={`mailto:${client.email}`}>{client.email}</a> : "—"}
               </dd>
+              <dt className="text-muted-foreground">אתר</dt>
+              <dd dir="ltr" className="truncate text-end">
+                {client.website ? (
+                  <a href={client.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    {client.website.replace(/^https?:\/\//i, "").replace(/\/$/, "")}
+                  </a>
+                ) : (
+                  "—"
+                )}
+              </dd>
               <dt className="text-muted-foreground">תעריף</dt>
               <dd>{client.hourly_rate != null ? `₪${client.hourly_rate} לשעה` : "—"}</dd>
             </dl>
             {client.notes && <p className="text-muted-foreground mt-4 text-sm whitespace-pre-line">{client.notes}</p>}
+            <ClientContacts clientId={client.id} contacts={contacts} />
           </CardContent>
         </Card>
 
@@ -91,6 +115,25 @@ async function ClientDetails({ params }: Pick<PageProps<"/clients/[id]">, "param
           </CardHeader>
           <CardContent>
             <TaskList tasks={openTasks} empty="אין משימות פתוחות ללקוח." />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">פרויקטים ({projects.length})</CardTitle>
+            <ProjectFormDialog
+              clientId={client.id}
+              clientRate={client.hourly_rate}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <PlusIcon />
+                  פרויקט חדש
+                </Button>
+              }
+            />
+          </CardHeader>
+          <CardContent>
+            <ProjectList projects={projects} />
           </CardContent>
         </Card>
 
@@ -137,11 +180,12 @@ async function ClientDetails({ params }: Pick<PageProps<"/clients/[id]">, "param
   );
 }
 
-type TaskRow = Awaited<ReturnType<typeof getClientDetails>> extends infer D
-  ? D extends { openTasks: (infer T)[] }
-    ? T
-    : never
-  : never;
+type TaskRow =
+  Awaited<ReturnType<typeof getClientDetails>> extends infer D
+    ? D extends { openTasks: (infer T)[] }
+      ? T
+      : never
+    : never;
 
 function MeetingList({ title, meetings, empty }: { title: string; meetings: ClientMeeting[]; empty: string }) {
   return (
@@ -180,11 +224,38 @@ function TaskList({ tasks, empty }: { tasks: TaskRow[]; empty: string }) {
           <Link href={`/tasks/${t.id}`} className="font-medium hover:underline">
             {t.title}
           </Link>
+          {t.projects && <span className="text-muted-foreground text-xs">· {t.projects.name}</span>}
           <PriorityBadge priority={t.priority} />
           <span className="text-muted-foreground ms-auto">{formatDate(t.due_date)}</span>
           <StatusBadge status={t.status} />
         </li>
       ))}
+    </ul>
+  );
+}
+
+function ProjectList({ projects }: { projects: ClientProject[] }) {
+  if (projects.length === 0) {
+    return <p className="text-muted-foreground text-sm">אין פרויקטים. פרויקט מקבץ כמה משימות עם תמחור אחד.</p>;
+  }
+  return (
+    <ul className="divide-y">
+      {projects.map((p) => {
+        const { final } = computePrice(p, p.billableMinutes);
+        return (
+          <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
+            <Link href={`/projects/${p.id}`} className="font-medium hover:underline">
+              {p.name}
+            </Link>
+            <Badge variant={p.status === "active" ? "default" : "secondary"}>{PROJECT_STATUS_LABELS[p.status]}</Badge>
+            <span className="text-muted-foreground">
+              {p.pricing_type ? PRICING_LABELS[p.pricing_type] : "לא מתומחר"}
+            </span>
+            <span className="text-muted-foreground ms-auto">{formatMinutes(p.billableMinutes)} שעות</span>
+            {p.pricing_type && <span className="font-medium">{formatMoney(final)}</span>}
+          </li>
+        );
+      })}
     </ul>
   );
 }

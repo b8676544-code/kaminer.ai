@@ -30,11 +30,11 @@ export async function listClients(status: ClientStatus) {
 
 export async function getClientDetails(id: string) {
   const supabase = await createClient();
-  const [clientRes, tasksRes, hoursRes] = await Promise.all([
+  const [clientRes, tasksRes, hoursRes, contactsRes] = await Promise.all([
     supabase.from("clients").select("*").eq("id", id).maybeSingle(),
     supabase
       .from("tasks")
-      .select("id, title, status, priority, due_date, category, completed_at")
+      .select("id, title, status, priority, due_date, category, completed_at, projects(name)")
       .eq("client_id", id)
       .order("due_date", { ascending: true, nullsFirst: false }),
     supabase
@@ -43,6 +43,11 @@ export async function getClientDetails(id: string) {
       .eq("client_id", id)
       .order("month", { ascending: false })
       .limit(12),
+    supabase
+      .from("client_contacts")
+      .select("id, name, role, mobile, phone, email, notes")
+      .eq("client_id", id)
+      .order("created_at"),
   ]);
   if (clientRes.error) throw clientRes.error;
   if (!clientRes.data) return null;
@@ -53,12 +58,24 @@ export async function getClientDetails(id: string) {
     openTasks: tasks.filter((t) => t.status !== "done"),
     doneTasks: tasks.filter((t) => t.status === "done"),
     monthlyHours: hoursRes.data ?? [],
+    contacts: contactsRes.data ?? [],
   };
 }
 
 // רשימה קצרה לבחירה בטופס משימה
-export async function listActiveClientOptions() {
+export async function listActiveClientOptions(includeId?: string | null) {
   const supabase = await createClient();
-  const { data } = await supabase.from("clients").select("id, name").eq("status", "active").order("name");
-  return data ?? [];
+  const { data } = await supabase.from("clients").select("id, name, hourly_rate").eq("status", "active").order("name");
+  const options = data ?? [];
+  // לקוח בארכיון שנבחר במפורש (למשל ממשימה בפרויקט שלו) נשאר ברשימה
+  const safeId = includeId && /^[0-9a-f-]{36}$/i.test(includeId) ? includeId : null;
+  if (safeId && !options.some((c) => c.id === safeId)) {
+    const { data: extra } = await supabase
+      .from("clients")
+      .select("id, name, hourly_rate")
+      .eq("id", safeId)
+      .maybeSingle();
+    if (extra) options.push({ ...extra, name: `${extra.name} (ארכיון)` });
+  }
+  return options;
 }

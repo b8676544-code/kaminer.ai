@@ -27,7 +27,11 @@ export function minutesToTime(minutes: number): string {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
-const monthFormatter = new Intl.DateTimeFormat("he-IL", { month: "long", year: "numeric", timeZone: "UTC" });
+const monthFormatter = new Intl.DateTimeFormat("he-IL", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 // כותרת הטווח בסרגל: "22.11 – 28.11.2026" או "נובמבר 2026"
 export function rangeTitle(view: CalendarView, days: string[]): string {
@@ -42,4 +46,20 @@ export function rangeTitle(view: CalendarView, days: string[]): string {
 
 export function calendarHref(view: CalendarView, date: string): string {
   return `/calendar?view=${view}&date=${date}`;
+}
+
+// צבע פגישה ביומן: עסקית בצבע הראשי, אישית בענבר
+export const MEETING_TONE = {
+  business: {
+    chip: "bg-primary/15 hover:bg-primary/25",
+    block: "bg-primary/10 hover:bg-primary/20 border-primary",
+  },
+  personal: {
+    chip: "bg-amber-500/20 hover:bg-amber-500/30",
+    block: "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500",
+  },
+} as const;
+
+export function meetingTone(m: { is_personal: boolean }) {
+  return MEETING_TONE[m.is_personal ? "personal" : "business"];
 }

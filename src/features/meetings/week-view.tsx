@@ -6,7 +6,7 @@ import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isoToJerusalem } from "@/features/shared/format";
 import { layoutDay, meetingsOnDay } from "./calendar-range";
-import { dayMonth, timeRange, weekdayLabel } from "./labels";
+import { dayMonth, timeRange, weekdayLabel, meetingTone } from "./labels";
 import type { MeetingItem } from "./queries";
 
 const HOUR_PX = 48;
@@ -15,12 +15,20 @@ const SCROLL_TO_HOUR = 7;
 
 // השעה הנוכחית בשעון ירושלים. מחושב רק בדפדפן כדי לא ליצור הבדל בין שרת ללקוח
 function useNow() {
-  const [now, setNow] = useState<{ date: string; minutes: number; iso: string } | null>(null);
+  const [now, setNow] = useState<{
+    date: string;
+    minutes: number;
+    iso: string;
+  } | null>(null);
   useEffect(() => {
     const tick = () => {
       const iso = new Date().toISOString();
       const { date, time } = isoToJerusalem(iso);
-      setNow({ date, minutes: Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5)), iso });
+      setNow({
+        date,
+        minutes: Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5)),
+        iso,
+      });
     };
     tick();
     const id = setInterval(tick, 60_000);
@@ -79,7 +87,7 @@ export function WeekView({
                       key={m.id}
                       type="button"
                       onClick={() => onOpen(m)}
-                      className="bg-primary/15 hover:bg-primary/25 truncate rounded px-1.5 py-0.5 text-start text-xs"
+                      className={cn(meetingTone(m).chip, "truncate rounded px-1.5 py-0.5 text-start text-xs")}
                     >
                       {m.title}
                     </button>
@@ -143,13 +151,14 @@ export function WeekView({
                   <button
                     key={m.id}
                     type="button"
-                    aria-label={`${m.title}, ${timeRange(m.starts_at, m.ends_at)}${m.clients ? `, ${m.clients.name}` : ""}${m.loggedCount > 0 ? ", נרשם כזמן עבודה" : ""}`}
+                    aria-label={`${m.title}, ${timeRange(m.starts_at, m.ends_at)}${m.clients ? `, ${m.clients.name}` : ""}${m.is_personal ? ", אישית" : ""}${m.loggedCount > 0 ? ", נרשם כזמן עבודה" : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpen(m);
                     }}
                     className={cn(
-                      "bg-primary/10 hover:bg-primary/20 border-primary absolute z-[5] overflow-hidden rounded-md border-s-[3px] px-1.5 py-0.5 text-start text-xs leading-tight",
+                      meetingTone(m).block,
+                      "absolute z-[5] overflow-hidden rounded-md border-s-[3px] px-1.5 py-0.5 text-start text-xs leading-tight",
                       past && "opacity-60",
                     )}
                     style={{

@@ -43,16 +43,42 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
-                },"clients": {
+                },"client_contacts": {
                   Row: {
-                    "contact_name": string | null,"created_at": string,"email": string | null,"hourly_rate": number | null,"id": string,"name": string,"notes": string | null,"owner_id": string,"phone": string | null,"status": Database["public"]['Enums']["client_status"],"updated_at": string
+                    "client_id": string,"created_at": string,"email": string | null,"id": string,"mobile": string | null,"name": string,"notes": string | null,"owner_id": string,"phone": string | null,"role": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "contact_name"?: string | null,"created_at"?: string,"email"?: string | null,"hourly_rate"?: number | null,"id"?: string,"name": string,"notes"?: string | null,"owner_id"?: string,"phone"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string
+                    "client_id": string,"created_at"?: string,"email"?: string | null,"id"?: string,"mobile"?: string | null,"name": string,"notes"?: string | null,"owner_id"?: string,"phone"?: string | null,"role"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "contact_name"?: string | null,"created_at"?: string,"email"?: string | null,"hourly_rate"?: number | null,"id"?: string,"name"?: string,"notes"?: string | null,"owner_id"?: string,"phone"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string
+                    "client_id"?: string,"created_at"?: string,"email"?: string | null,"id"?: string,"mobile"?: string | null,"name"?: string,"notes"?: string | null,"owner_id"?: string,"phone"?: string | null,"role"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "client_contacts_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "clients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "client_contacts_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"clients": {
+                  Row: {
+                    "contact_name": string | null,"created_at": string,"email": string | null,"hourly_rate": number | null,"id": string,"mobile": string | null,"name": string,"notes": string | null,"owner_id": string,"phone": string | null,"status": Database["public"]['Enums']["client_status"],"updated_at": string,"website": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_name"?: string | null,"created_at"?: string,"email"?: string | null,"hourly_rate"?: number | null,"id"?: string,"mobile"?: string | null,"name": string,"notes"?: string | null,"owner_id"?: string,"phone"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string,"website"?: string | null
+                  }
+                  Update: {
+                    "contact_name"?: string | null,"created_at"?: string,"email"?: string | null,"hourly_rate"?: number | null,"id"?: string,"mobile"?: string | null,"name"?: string,"notes"?: string | null,"owner_id"?: string,"phone"?: string | null,"status"?: Database["public"]['Enums']["client_status"],"updated_at"?: string,"website"?: string | null
                   }
                   Relationships: [
                     {
@@ -91,14 +117,14 @@ isOneToOne: false
                   ]
                 },"meetings": {
                   Row: {
-                    "client_id": string | null,"created_at": string,"deleted_at": string | null,"ends_at": string,"google_etag": string | null,"google_event_id": string | null,"id": string,"is_all_day": boolean,"last_synced_at": string | null,"location": string | null,"needs_push": boolean,"notes": string | null,"owner_id": string,"source": string,"starts_at": string,"task_id": string | null,"title": string,"updated_at": string
+                    "client_id": string | null,"created_at": string,"deleted_at": string | null,"ends_at": string,"google_etag": string | null,"google_event_id": string | null,"id": string,"is_all_day": boolean,"is_personal": boolean,"last_synced_at": string | null,"location": string | null,"needs_push": boolean,"notes": string | null,"owner_id": string,"source": string,"starts_at": string,"task_id": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at": string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"needs_push"?: boolean,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at": string,"task_id"?: string | null,"title": string,"updated_at"?: string
+                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at": string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"is_personal"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"needs_push"?: boolean,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at": string,"task_id"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at"?: string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"needs_push"?: boolean,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at"?: string,"task_id"?: string | null,"title"?: string,"updated_at"?: string
+                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at"?: string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"is_personal"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"needs_push"?: boolean,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at"?: string,"task_id"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -140,6 +166,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"projects": {
+                  Row: {
+                    "client_id": string,"created_at": string,"description": string | null,"end_date": string | null,"final_price": number | null,"hourly_rate": number | null,"id": string,"name": string,"owner_id": string,"pricing_type": Database["public"]['Enums']["pricing_type"] | null,"start_date": string | null,"status": Database["public"]['Enums']["project_status"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_id": string,"created_at"?: string,"description"?: string | null,"end_date"?: string | null,"final_price"?: number | null,"hourly_rate"?: number | null,"id"?: string,"name": string,"owner_id"?: string,"pricing_type"?: Database["public"]['Enums']["pricing_type"] | null,"start_date"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"updated_at"?: string
+                  }
+                  Update: {
+                    "client_id"?: string,"created_at"?: string,"description"?: string | null,"end_date"?: string | null,"final_price"?: number | null,"hourly_rate"?: number | null,"id"?: string,"name"?: string,"owner_id"?: string,"pricing_type"?: Database["public"]['Enums']["pricing_type"] | null,"start_date"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "clients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"task_checklist_items": {
                   Row: {
@@ -221,14 +273,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "assignee_freelancer_id": string | null,"category": Database["public"]['Enums']["task_category"],"client_id": string | null,"completed_at": string | null,"created_at": string,"created_by": string,"description": string | null,"due_date": string | null,"estimate_minutes": number | null,"freelancer_cost": number | null,"id": string,"owner_id": string,"priority": Database["public"]['Enums']["task_priority"],"recurrence_rule": string | null,"status": Database["public"]['Enums']["task_status"],"template_id": string | null,"title": string,"updated_at": string
+                    "assignee_freelancer_id": string | null,"category": Database["public"]['Enums']["task_category"],"client_id": string | null,"completed_at": string | null,"created_at": string,"created_by": string,"description": string | null,"due_date": string | null,"estimate_minutes": number | null,"final_price": number | null,"freelancer_cost": number | null,"hourly_rate": number | null,"id": string,"owner_id": string,"pricing_type": Database["public"]['Enums']["pricing_type"] | null,"priority": Database["public"]['Enums']["task_priority"],"project_id": string | null,"recurrence_rule": string | null,"status": Database["public"]['Enums']["task_status"],"template_id": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assignee_freelancer_id"?: string | null,"category": Database["public"]['Enums']["task_category"],"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description"?: string | null,"due_date"?: string | null,"estimate_minutes"?: number | null,"freelancer_cost"?: number | null,"id"?: string,"owner_id"?: string,"priority"?: Database["public"]['Enums']["task_priority"],"recurrence_rule"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"template_id"?: string | null,"title": string,"updated_at"?: string
+                    "assignee_freelancer_id"?: string | null,"category": Database["public"]['Enums']["task_category"],"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description"?: string | null,"due_date"?: string | null,"estimate_minutes"?: number | null,"final_price"?: number | null,"freelancer_cost"?: number | null,"hourly_rate"?: number | null,"id"?: string,"owner_id"?: string,"pricing_type"?: Database["public"]['Enums']["pricing_type"] | null,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"recurrence_rule"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"template_id"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "assignee_freelancer_id"?: string | null,"category"?: Database["public"]['Enums']["task_category"],"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description"?: string | null,"due_date"?: string | null,"estimate_minutes"?: number | null,"freelancer_cost"?: number | null,"id"?: string,"owner_id"?: string,"priority"?: Database["public"]['Enums']["task_priority"],"recurrence_rule"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"template_id"?: string | null,"title"?: string,"updated_at"?: string
+                    "assignee_freelancer_id"?: string | null,"category"?: Database["public"]['Enums']["task_category"],"client_id"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"description"?: string | null,"due_date"?: string | null,"estimate_minutes"?: number | null,"final_price"?: number | null,"freelancer_cost"?: number | null,"hourly_rate"?: number | null,"id"?: string,"owner_id"?: string,"pricing_type"?: Database["public"]['Enums']["pricing_type"] | null,"priority"?: Database["public"]['Enums']["task_priority"],"project_id"?: string | null,"recurrence_rule"?: string | null,"status"?: Database["public"]['Enums']["task_status"],"template_id"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -254,6 +306,12 @@ isOneToOne: false
       columns: ["owner_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "tasks_template_id_fkey"
@@ -393,7 +451,7 @@ isOneToOne: false
       } }
           }
           Enums: {
-            "client_status": "active"|"archived","task_category": "marketing"|"business"|"clients"|"personal","task_priority": "low"|"normal"|"urgent","task_status": "todo"|"in_progress"|"waiting_client"|"done","user_role": "owner"|"freelancer"
+            "client_status": "active"|"archived","pricing_type": "hourly"|"fixed","project_status": "active"|"done"|"archived","task_category": "marketing"|"business"|"clients"|"personal","task_priority": "low"|"normal"|"urgent","task_status": "todo"|"in_progress"|"waiting_client"|"done","user_role": "owner"|"freelancer"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -513,7 +571,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "client_status": ["active", "archived"],"task_category": ["marketing", "business", "clients", "personal"],"task_priority": ["low", "normal", "urgent"],"task_status": ["todo", "in_progress", "waiting_client", "done"],"user_role": ["owner", "freelancer"]
+            "client_status": ["active", "archived"],"pricing_type": ["hourly", "fixed"],"project_status": ["active", "done", "archived"],"task_category": ["marketing", "business", "clients", "personal"],"task_priority": ["low", "normal", "urgent"],"task_status": ["todo", "in_progress", "waiting_client", "done"],"user_role": ["owner", "freelancer"]
           }
         }
 } as const

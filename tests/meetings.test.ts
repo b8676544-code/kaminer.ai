@@ -162,6 +162,7 @@ describe("meetingSchema", () => {
       title: "פגישת היכרות עם משפחת כהן",
       starts_at: "2026-11-23T08:00:00.000Z",
       ends_at: "2026-11-23T09:00:00.000Z",
+      is_personal: false,
       client_id: null,
       task_id: null,
       location: null,

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { listActiveClientOptions } from "@/features/clients/queries";
 import { listActiveFreelancerOptions } from "@/features/freelancers/queries";
+import { listProjectOptions } from "@/features/projects/queries";
 import { TaskForm, type TaskFormValues } from "@/features/tasks/task-form";
 import { getActiveTemplate, listActiveTemplateOptions } from "@/features/templates/queries";
 import { TemplatePicker } from "@/features/templates/template-picker";
@@ -21,18 +22,25 @@ export default function NewTaskPage({ searchParams }: PageProps<"/tasks/new">) {
 }
 
 async function NewTaskForm({ searchParams }: Pick<PageProps<"/tasks/new">, "searchParams">) {
-  const { client, template: templateParam } = await searchParams;
+  const { client, project, template: templateParam } = await searchParams;
   const parsedTemplate = z.guid().safeParse(templateParam);
   const templateId = parsedTemplate.success ? parsedTemplate.data : null;
 
-  const [clients, freelancers, templateOptions, template] = await Promise.all([
-    listActiveClientOptions(),
+  const [clients, freelancers, templateOptions, template, projects] = await Promise.all([
+    listActiveClientOptions(typeof client === "string" ? client : null),
     listActiveFreelancerOptions(),
     listActiveTemplateOptions(),
     templateId ? getActiveTemplate(templateId) : null,
+    listProjectOptions(),
   ]);
   // לקוח מראש (מכפתור "משימה ללקוח"), רק אם הוא באמת ברשימה
   const presetClient = typeof client === "string" && clients.some((c) => c.id === client) ? client : null;
+
+  // פרויקט מראש (מכפתור "משימה בפרויקט"), רק אם הוא פעיל ושייך ללקוח שנבחר
+  const presetProject =
+    presetClient && typeof project === "string" && projects.some((p) => p.id === project && p.client_id === presetClient)
+      ? project
+      : null;
 
   const category = template?.category ?? (presetClient ? "clients" : "business");
   const task: TaskFormValues = {
@@ -47,6 +55,10 @@ async function NewTaskForm({ searchParams }: Pick<PageProps<"/tasks/new">, "sear
     estimate_minutes: template?.default_estimate_minutes ?? null,
     assignee_freelancer_id: null,
     freelancer_cost: null,
+    project_id: category === "personal" ? null : presetProject,
+    pricing_type: null,
+    hourly_rate: null,
+    final_price: null,
     template_id: template?.id ?? null,
     checklist: template?.checklist ?? [],
   };
@@ -65,6 +77,7 @@ async function NewTaskForm({ searchParams }: Pick<PageProps<"/tasks/new">, "sear
         task={task}
         clients={clients}
         freelancers={freelancers.map((f) => ({ id: f.id, name: f.full_name }))}
+        projects={projects}
       />
     </div>
   );

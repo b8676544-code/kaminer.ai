@@ -5,6 +5,8 @@ import { ChevronRightIcon, CopyPlusIcon, PencilIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { taskBillableMinutes } from "@/features/projects/queries";
+import { PricingCard } from "@/features/shared/pricing-card";
 import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
 import { CategoryBadge, PriorityBadge } from "@/features/tasks/badges";
 import { Checklist } from "@/features/tasks/checklist";
@@ -31,7 +33,11 @@ export default function TaskPage({ params }: PageProps<"/tasks/[id]">) {
 async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [details, running] = await Promise.all([getTask(id), getRunningTimer()]);
+  const [details, running, billableMinutes] = await Promise.all([
+    getTask(id),
+    getRunningTimer(),
+    taskBillableMinutes(id),
+  ]);
   if (!details) notFound();
   const { task, checklist, notes, actualMinutes, timeEntries } = details;
   const overdue = isOverdue(task.due_date, task.status, todayInJerusalem());
@@ -133,6 +139,17 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
                     "—"
                   )}
                 </dd>
+                {task.projects && (
+                  <>
+                    <dt className="text-muted-foreground">פרויקט</dt>
+                    <dd>
+                      <Link href={`/projects/${task.projects.id}`} className="hover:underline">
+                        {task.projects.name}
+                      </Link>
+                      <span className="text-muted-foreground"> · מתומחר בפרויקט</span>
+                    </dd>
+                  </>
+                )}
                 <dt className="text-muted-foreground">תאריך יעד</dt>
                 <dd className={cn(overdue && "text-destructive font-medium")}>
                   {formatDate(task.due_date)}
@@ -165,6 +182,16 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
               </dl>
             </CardContent>
           </Card>
+
+          {/* משימה בפרויקט מתומחרת בפרויקט; משימה אישית לא מתומחרת */}
+          {!task.project_id && task.category !== "personal" && (
+            <PricingCard
+              entity="task"
+              entityId={task.id}
+              pricing={{ pricing_type: task.pricing_type, hourly_rate: task.hourly_rate, final_price: task.final_price }}
+              billableMinutes={billableMinutes}
+            />
+          )}
 
           <Card>
             <CardHeader>

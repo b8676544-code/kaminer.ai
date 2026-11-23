@@ -5,7 +5,14 @@ import { CheckIcon, ClockIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,7 +94,14 @@ function useTaskChoices(tasks: TaskOption[], clientId: string, meeting: MeetingI
     const list = clientId ? tasks.filter((t) => t.client_id === clientId) : tasks;
     if (meeting?.task_id && meeting.tasks && !list.some((t) => t.id === meeting.task_id)) {
       const suffix = meeting.tasks.status === "done" ? " (הושלמה)" : "";
-      return [{ id: meeting.task_id, title: meeting.tasks.title + suffix, client_id: meeting.client_id }, ...list];
+      return [
+        {
+          id: meeting.task_id,
+          title: meeting.tasks.title + suffix,
+          client_id: meeting.client_id,
+        },
+        ...list,
+      ];
     }
     return list;
   }, [tasks, clientId, meeting]);
@@ -118,6 +132,9 @@ function MeetingForm({
     end: end?.time ?? (state.kind === "create" ? state.end : ""),
   };
 
+  const [isPersonal, setIsPersonal] = useState(
+    v?.is_personal !== undefined ? v.is_personal === "true" : (meeting?.is_personal ?? false),
+  );
   const [clientId, setClientId] = useState(v?.client_id ?? meeting?.client_id ?? "");
   const [taskId, setTaskId] = useState(v?.task_id ?? meeting?.task_id ?? "");
   const taskChoices = useTaskChoices(tasks, clientId, meeting);
@@ -138,11 +155,41 @@ function MeetingForm({
   }, [result, meeting, onDone]);
 
   const canLogWork =
-    state.kind === "edit" && state.ended && !state.meeting.is_all_day && state.meeting.loggedCount === 0;
+    state.kind === "edit" &&
+    state.ended &&
+    !state.meeting.is_all_day &&
+    !state.meeting.is_personal &&
+    state.meeting.loggedCount === 0;
 
   return (
     <form action={action} className="grid gap-4">
       {meeting && <input type="hidden" name="id" value={meeting.id} />}
+      <input type="hidden" name="is_personal" value={String(isPersonal)} />
+      <div role="radiogroup" aria-label="סוג הפגישה" className="bg-muted flex w-fit gap-1 rounded-md p-1 text-sm">
+        {[
+          { value: false, label: "עסקית" },
+          { value: true, label: "אישית" },
+        ].map((o) => (
+          <button
+            key={o.label}
+            type="button"
+            role="radio"
+            aria-checked={isPersonal === o.value}
+            onClick={() => {
+              setIsPersonal(o.value);
+              // פגישה אישית לא משויכת ללקוח
+              if (o.value) setClientId("");
+            }}
+            className={
+              isPersonal === o.value
+                ? "bg-background rounded px-3 py-1 font-medium shadow-sm"
+                : "text-muted-foreground rounded px-3 py-1"
+            }
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
       <Field id="meeting-title" label="כותרת" error={fe.title} required>
         <Input name="title" defaultValue={v?.title ?? meeting?.title ?? ""} maxLength={200} required autoFocus />
       </Field>
@@ -162,16 +209,18 @@ function MeetingForm({
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="meeting-client" label="לקוח" error={fe.client_id}>
-          <NativeSelect name="client_id" value={clientId} onChange={(e) => setClientId(e.target.value)}>
-            <option value="">ללא לקוח</option>
-            {clientChoices.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </NativeSelect>
-        </Field>
+        {!isPersonal && (
+          <Field id="meeting-client" label="לקוח" error={fe.client_id}>
+            <NativeSelect name="client_id" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+              <option value="">ללא לקוח</option>
+              {clientChoices.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+        )}
         <Field id="meeting-task" label="משימה קשורה" error={fe.task_id}>
           <NativeSelect name="task_id" value={selectedTask} onChange={(e) => setTaskId(e.target.value)}>
             <option value="">ללא משימה</option>

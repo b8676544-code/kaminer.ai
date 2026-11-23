@@ -91,6 +91,29 @@ insert into public.tasks (id, owner_id, created_by, title, description, category
    'todo', 'low', current_date + 6, null, null, null, null);
 
 -- ───────────── תתי־משימות ─────────────
+-- ───────────── נייד, אנשי קשר, פרויקטים ותמחור ─────────────
+update public.clients set mobile = '050-7778899', website = 'https://or-hachaim.example.com' where id = 'c0000000-0000-0000-0000-000000000001';
+
+insert into public.client_contacts (owner_id, client_id, name, role, mobile, email) values
+  ('11111111-1111-1111-1111-111111111111', 'c0000000-0000-0000-0000-000000000001',
+   'שרה כהן', 'הנהלת חשבונות', '052-3334455', 'sara@example.com');
+
+insert into public.projects (id, owner_id, client_id, name, description, status, start_date, end_date, pricing_type, final_price) values
+  ('b0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'c0000000-0000-0000-0000-000000000002',
+   'אתר חדש לקייטרינג', 'אפיון, עיצוב והקמה של אתר עם תפריטים לשבתות וחגים', 'active',
+   current_date - 7, current_date + 30, 'fixed', 8000);
+
+insert into public.tasks (id, owner_id, created_by, title, category, client_id, project_id, status, priority, due_date, estimate_minutes) values
+  ('a0000000-0000-0000-0000-000000000101', '11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111',
+   'אפיון האתר', 'clients', 'c0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
+   'done', 'normal', current_date - 2, 240),
+  ('a0000000-0000-0000-0000-000000000102', '11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111',
+   'עיצוב דף הבית', 'clients', 'c0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
+   'todo', 'urgent', current_date + 10, 360);
+
+-- משימה בודדת עם מחיר גלובלי
+update public.tasks set pricing_type = 'fixed', final_price = 450 where id = 'a0000000-0000-0000-0000-000000000002';
+
 insert into public.task_checklist_items (task_id, text, is_done, position) values
   ('a0000000-0000-0000-0000-000000000001', 'איסוף תכנים מהלקוח', true, 0),
   ('a0000000-0000-0000-0000-000000000001', 'כתיבת טקסטים', true, 1),
@@ -123,3 +146,9 @@ insert into public.meetings (owner_id, title, starts_at, ends_at, client_id, tas
   ('11111111-1111-1111-1111-111111111111', 'יום עיון לבעלות עסקים',
    (current_date + 3)::timestamp at time zone 'Asia/Jerusalem', (current_date + 4)::timestamp at time zone 'Asia/Jerusalem',
    null, null, null, null, 'google', true);
+
+-- פגישה אישית (לא משויכת ללקוח)
+insert into public.meetings (owner_id, title, starts_at, ends_at, is_personal) values
+  ('11111111-1111-1111-1111-111111111111', 'תור לרופא שיניים',
+   (current_date + 1 + time '16:00') at time zone 'Asia/Jerusalem',
+   (current_date + 1 + time '16:30') at time zone 'Asia/Jerusalem', true);

@@ -3,7 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
 const MEETING_SELECT =
-  "id, title, starts_at, ends_at, is_all_day, source, client_id, task_id, location, notes, clients(name), tasks(title, status), time_entries(id)";
+  "id, title, starts_at, ends_at, is_all_day, is_personal, source, client_id, task_id, location, notes, clients(name), tasks(title, status), time_entries(id)";
 
 // פגישות שנוגעות בטווח [from, to). פגישות שנמחקו (מחיקה רכה) לא מוצגות
 export async function listMeetings(from: string, to: string) {
