@@ -11,6 +11,7 @@ import { parseChecklistLines, taskSchema, taskStatusSchema } from "./schemas";
 const idSchema = z.guid();
 
 function revalidateTasks(taskId?: string) {
+  revalidatePath("/");
   revalidatePath("/tasks");
   revalidatePath("/clients", "layout");
   revalidatePath("/projects", "layout");
