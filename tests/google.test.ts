@@ -65,7 +65,22 @@ describe("אירוע Google ← פגישה", () => {
       is_all_day: false,
       location: "בני ברק",
       notes: "להביא הצעת מחיר",
+      invite_emails: [],
     });
+  });
+
+  it("מוזמנים: בלי בעלת היומן ובלי חדרים, ורק באירוע שלך", () => {
+    const base = { id: "i", start: { dateTime: "2026-11-24T10:00:00Z" }, end: { dateTime: "2026-11-24T11:00:00Z" } };
+    const attendees = [
+      { email: "me@example.com", self: true },
+      { email: "Levi@Example.com" },
+      { email: "room@resource.calendar.google.com", resource: true },
+    ];
+    expect(googleEventToMeeting({ ...base, organizer: { self: true }, attendees })?.invite_emails).toEqual([
+      "levi@example.com",
+    ]);
+    // אירוע שמישהו אחר ארגן: לא מנהלים את המוזמנים שלו
+    expect(googleEventToMeeting({ ...base, organizer: { self: false }, attendees })?.invite_emails).toEqual([]);
   });
 
   it("יום שלם: מחצות לחצות בשעון ירושלים, הסיום בלעדי", () => {
@@ -109,6 +124,28 @@ describe("אירוע Google ← פגישה", () => {
 });
 
 describe("פגישה ← אירוע Google", () => {
+  const meeting = {
+    title: "פגישה עם משפחת לוי",
+    starts_at: "2026-11-24T08:00:00.000Z",
+    ends_at: "2026-11-24T09:00:00.000Z",
+    is_all_day: false,
+    location: null,
+    notes: null,
+  };
+
+  it("מוזמנים נשלחים כ-attendees", () => {
+    const ev = meetingToGoogleEvent({ ...meeting, invite_emails: ["levi@example.com"], source: "app" });
+    expect(ev.attendees).toEqual([{ email: "levi@example.com" }]);
+  });
+
+  it("פגישה מהמערכת בלי מוזמנים: רשימה ריקה (מסירה מוזמן אחרון)", () => {
+    expect(meetingToGoogleEvent({ ...meeting, invite_emails: [], source: "app" }).attendees).toEqual([]);
+  });
+
+  it("אירוע מ-Google בלי מוזמנים: לא נוגעים במשתתפים", () => {
+    expect(meetingToGoogleEvent({ ...meeting, invite_emails: [], source: "google" })).not.toHaveProperty("attendees");
+  });
+
   it("פגישה עם שעות נשלחת עם אזור הזמן", () => {
     expect(
       meetingToGoogleEvent({
@@ -118,6 +155,8 @@ describe("פגישה ← אירוע Google", () => {
         is_all_day: false,
         location: null,
         notes: "שיחה בזום",
+        invite_emails: [],
+        source: "google",
       }),
     ).toEqual({
       summary: "שיחת היכרות",
@@ -136,6 +175,8 @@ describe("פגישה ← אירוע Google", () => {
       is_all_day: true,
       location: null,
       notes: null,
+      invite_emails: [],
+      source: "google",
     });
     expect(ev.start).toEqual({ date: "2026-11-24" });
     expect(ev.end).toEqual({ date: "2026-11-25" });

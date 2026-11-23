@@ -46,8 +46,16 @@ export async function lockComputedPrice(entity: "project" | "task", entityId: st
   if (!row) return { error: "לא נמצא" };
   if (row.pricing_type !== "hourly" || row.hourly_rate == null) return { error: "החישוב זמין רק בתמחור לפי שעה עם תעריף" };
 
-  let entries = supabase.from("time_entries").select("duration_minutes, tasks!inner(project_id)").eq("is_billable", true).not("ended_at", "is", null);
-  entries = entity === "project" ? entries.eq("tasks.project_id", id.data) : entries.eq("task_id", id.data);
+  let entries = supabase
+    .from("time_entries")
+    .select("duration_minutes, tasks!inner(project_id, billed_separately)")
+    .eq("is_billable", true)
+    .not("ended_at", "is", null);
+  // בפרויקט: בלי משימות במחיר נפרד (הן מחויבות בעצמן)
+  entries =
+    entity === "project"
+      ? entries.eq("tasks.project_id", id.data).eq("tasks.billed_separately", false)
+      : entries.eq("task_id", id.data);
   const { data: rows, error: entriesError } = await entries;
   if (entriesError) return { error: dbErrorMessage(entriesError) };
   const minutes = rows.reduce((sum, r) => sum + (r.duration_minutes ?? 0), 0);

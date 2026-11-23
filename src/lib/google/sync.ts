@@ -6,9 +6,11 @@ import { deleteEvent, GoogleApiError, insertEvent, listEvents, patchEvent } from
 import {
   googleEventToMeeting,
   meetingIdToEventId,
+  managesAttendees,
   meetingToGoogleEvent,
   resolveConflict,
   type GoogleEvent,
+  type GoogleEventBody,
 } from "./mapping";
 import { GoogleAuthRevokedError, refreshAccessToken } from "./oauth";
 
@@ -186,7 +188,9 @@ async function applyGoogleEvents(ctx: Ctx, events: GoogleEvent[]): Promise<numbe
 async function push(ctx: Ctx): Promise<{ changed: number; errors: string[] }> {
   const { data: dirty, error } = await ctx.admin
     .from("meetings")
-    .select("id, title, starts_at, ends_at, is_all_day, location, notes, google_event_id, deleted_at, updated_at")
+    .select(
+      "id, title, starts_at, ends_at, is_all_day, location, notes, invite_emails, source, google_event_id, deleted_at, updated_at",
+    )
     .eq("owner_id", ctx.userId)
     .eq("needs_push", true)
     .order("updated_at")
@@ -207,13 +211,19 @@ async function push(ctx: Ctx): Promise<{ changed: number; errors: string[] }> {
 
     try {
       if (m.deleted_at) {
-        if (m.google_event_id) await deleteEvent(ctx.accessToken, ctx.calendarId, m.google_event_id);
+        if (m.google_event_id) {
+          await deleteEvent(ctx.accessToken, ctx.calendarId, m.google_event_id, {
+            notify: managesAttendees(m) && m.invite_emails.length > 0,
+          });
+        }
         await markClean();
         changed++;
         continue;
       }
 
       const body = meetingToGoogleEvent(m);
+      // הזמנה, עדכון או ביטול נשלחים במייל רק כשיש מוזמנים
+      const notify = (body.attendees?.length ?? 0) > 0;
       let saved: GoogleEvent;
       if (!m.google_event_id) {
         // שומרים קודם את המזהה, כך שגם אם נקרוס אחרי היצירה ב-Google
@@ -221,9 +231,9 @@ async function push(ctx: Ctx): Promise<{ changed: number; errors: string[] }> {
         const eventId = meetingIdToEventId(m.id);
         await ctx.admin.from("meetings").update({ google_event_id: eventId }).eq("id", m.id);
         m.updated_at = (await currentUpdatedAt(ctx, m.id)) ?? m.updated_at;
-        saved = await insertOrPatch(ctx, eventId, body);
+        saved = await insertOrPatch(ctx, eventId, body, notify);
       } else {
-        saved = await patchOrInsert(ctx, m.google_event_id, body);
+        saved = await patchOrInsert(ctx, m.google_event_id, body, notify);
       }
       await markClean({ google_etag: saved.etag ?? null });
       changed++;
@@ -243,25 +253,25 @@ async function currentUpdatedAt(ctx: Ctx, id: string): Promise<string | null> {
   return data?.updated_at ?? null;
 }
 
-async function insertOrPatch(ctx: Ctx, eventId: string, body: ReturnType<typeof meetingToGoogleEvent>) {
+async function insertOrPatch(ctx: Ctx, eventId: string, body: GoogleEventBody, notify: boolean) {
   try {
-    return await insertEvent(ctx.accessToken, ctx.calendarId, eventId, body);
+    return await insertEvent(ctx.accessToken, ctx.calendarId, eventId, body, { notify });
   } catch (e) {
     // כבר נוצר בניסיון קודם
     if (e instanceof GoogleApiError && e.status === 409) {
-      return patchEvent(ctx.accessToken, ctx.calendarId, eventId, body);
+      return patchEvent(ctx.accessToken, ctx.calendarId, eventId, body, { notify });
     }
     throw e;
   }
 }
 
-async function patchOrInsert(ctx: Ctx, eventId: string, body: ReturnType<typeof meetingToGoogleEvent>) {
+async function patchOrInsert(ctx: Ctx, eventId: string, body: GoogleEventBody, notify: boolean) {
   try {
-    return await patchEvent(ctx.accessToken, ctx.calendarId, eventId, body);
+    return await patchEvent(ctx.accessToken, ctx.calendarId, eventId, body, { notify });
   } catch (e) {
     // האירוע לא קיים ביומן הזה (נמחק, או חיבור מחדש ליומן אחר): יוצרים אותו
     if (e instanceof GoogleApiError && (e.status === 404 || e.status === 410)) {
-      return insertEvent(ctx.accessToken, ctx.calendarId, eventId, body);
+      return insertEvent(ctx.accessToken, ctx.calendarId, eventId, body, { notify });
     }
     throw e;
   }

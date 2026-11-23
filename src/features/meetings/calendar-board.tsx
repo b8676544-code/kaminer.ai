@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { minutesToTime } from "./labels";
 import { MeetingDialog, type ClientOption, type MeetingDialogState } from "./meeting-dialog";
 import { MonthView } from "./month-view";
-import type { MeetingItem, TaskOption } from "./queries";
+import type { InviteContact, MeetingItem, TaskOption } from "./queries";
 import { DEFAULT_MEETING_MINUTES } from "./schemas";
 import { WeekView } from "./week-view";
 
@@ -27,6 +27,7 @@ export function CalendarBoard({
   meetings,
   clients,
   tasks,
+  contacts,
 }: {
   view: CalendarView;
   date: string;
@@ -34,6 +35,7 @@ export function CalendarBoard({
   meetings: MeetingItem[];
   clients: ClientOption[];
   tasks: TaskOption[];
+  contacts: InviteContact[];
 }) {
   const [dialog, setDialog] = useState<MeetingDialogState>(null);
   const close = useCallback(() => setDialog(null), []);
@@ -100,7 +102,7 @@ export function CalendarBoard({
         />
       )}
 
-      <MeetingDialog state={dialog} onClose={close} clients={clients} tasks={tasks} />
+      <MeetingDialog state={dialog} onClose={close} clients={clients} tasks={tasks} contacts={contacts} />
     </div>
   );
 }

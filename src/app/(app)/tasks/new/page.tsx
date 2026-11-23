@@ -59,6 +59,9 @@ async function NewTaskForm({ searchParams }: Pick<PageProps<"/tasks/new">, "sear
     pricing_type: null,
     hourly_rate: null,
     final_price: null,
+    project_share: null,
+    billed_separately: false,
+    freelancer_cost_in_project: true,
     template_id: template?.id ?? null,
     checklist: template?.checklist ?? [],
   };

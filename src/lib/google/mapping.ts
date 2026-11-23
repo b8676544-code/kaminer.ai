@@ -18,6 +18,8 @@ export type GoogleEvent = {
   start?: EventTime;
   end?: EventTime;
   updated?: string;
+  organizer?: { email?: string; self?: boolean };
+  attendees?: { email?: string; self?: boolean; resource?: boolean }[];
 };
 
 // שדות הפגישה שמגיעים מ-Google. לקוח ומשימה לא כאן: השיוך נשאר מקומי
@@ -30,6 +32,7 @@ export type MeetingFromGoogle = {
   is_all_day: boolean;
   location: string | null;
   notes: string | null;
+  invite_emails: string[];
 };
 
 // השדות שנשלחים ל-Google
@@ -40,6 +43,9 @@ export type SyncedMeetingFields = {
   is_all_day: boolean;
   location: string | null;
   notes: string | null;
+  invite_emails: string[];
+  // 'app' = נוצרה במערכת; 'google' = יובאה מ-Google
+  source: string;
 };
 
 export type GoogleEventBody = {
@@ -48,6 +54,7 @@ export type GoogleEventBody = {
   description: string | null;
   start: EventTime;
   end: EventTime;
+  attendees?: { email: string }[];
 };
 
 function blankToNull(value: string | undefined): string | null {
@@ -88,7 +95,24 @@ export function googleEventToMeeting(ev: GoogleEvent): MeetingFromGoogle | null 
     is_all_day: isAllDay,
     location: blankToNull(ev.location),
     notes: blankToNull(ev.description),
+    invite_emails: eventInvitees(ev),
   };
+}
+
+// המוזמנים באירוע, בלי בעלת היומן ובלי חדרים. באירוע שמישהו אחר ארגן: ריק,
+// כי את רשימת המוזמנים שלו לא מנהלים מכאן
+function eventInvitees(ev: GoogleEvent): string[] {
+  if (ev.organizer && ev.organizer.self === false) return [];
+  const emails = (ev.attendees ?? [])
+    .filter((a) => !a.self && !a.resource && a.email)
+    .map((a) => a.email!.trim().toLowerCase());
+  return [...new Set(emails)];
+}
+
+// האם המערכת מנהלת את רשימת המוזמנים של הפגישה: פגישה שנוצרה כאן,
+// או אירוע מ-Google שיש בו מוזמנים שלך. אירוע שיובא בלי מוזמנים לא נוגעים בו
+export function managesAttendees(m: Pick<SyncedMeetingFields, "source" | "invite_emails">): boolean {
+  return m.source === "app" || m.invite_emails.length > 0;
 }
 
 export function meetingToGoogleEvent(m: SyncedMeetingFields): GoogleEventBody {
@@ -100,6 +124,7 @@ export function meetingToGoogleEvent(m: SyncedMeetingFields): GoogleEventBody {
     description: m.notes,
     start: time(m.starts_at),
     end: time(m.ends_at),
+    ...(managesAttendees(m) ? { attendees: m.invite_emails.map((email) => ({ email })) } : {}),
   };
 }
 

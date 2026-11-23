@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { CheckIcon, ClockIcon, Trash2Icon } from "lucide-react";
+import { CheckIcon, ClockIcon, MailIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import type { ActionState } from "@/features/shared/form";
 import { formatDate, isoToJerusalem } from "@/features/shared/format";
 import { deleteMeeting, logMeetingAsWork, saveMeeting } from "./actions";
 import { timeRange } from "./labels";
-import type { MeetingItem, TaskOption } from "./queries";
+import type { InviteContact, MeetingItem, TaskOption } from "./queries";
 
 export type ClientOption = { id: string; name: string };
 
@@ -31,7 +31,7 @@ export type MeetingDialogState =
   | { kind: "edit"; meeting: MeetingItem; ended: boolean }
   | null;
 
-type Options = { clients: ClientOption[]; tasks: TaskOption[] };
+type Options = { clients: ClientOption[]; tasks: TaskOption[]; contacts: InviteContact[] };
 
 export function MeetingDialog({
   state,
@@ -88,6 +88,78 @@ export function MeetingDialog({
   );
 }
 
+function splitEmails(text: string): string[] {
+  return text
+    .split(/[s,;]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+// הזמנה במייל: Google שולח את ההזמנה מהחשבון המחובר. הכתובות נשלחות בשדה מוסתר אחד
+function InviteFields({
+  contacts,
+  initial,
+  error,
+}: {
+  contacts: InviteContact[];
+  initial: string[];
+  error?: string;
+}) {
+  const [enabled, setEnabled] = useState(initial.length > 0);
+  const known = new Set(contacts.map((c) => c.email));
+  const [checked, setChecked] = useState<string[]>(initial.filter((e) => known.has(e)));
+  const [extra, setExtra] = useState(initial.filter((e) => !known.has(e)).join(", "));
+  // אנשי קשר שהוחלף הלקוח שלהם לא נשלחים
+  const selected = checked.filter((e) => known.has(e));
+  const value = enabled ? [...selected, ...splitEmails(extra)].join(",") : "";
+
+  return (
+    <fieldset className="grid gap-3 rounded-lg border p-3">
+      <input type="hidden" name="invite_emails" value={value} />
+      <label className="flex items-center gap-2 text-sm font-medium">
+        <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="size-4" />
+        <MailIcon className="size-4" aria-hidden />
+        שליחת הזמנה במייל
+      </label>
+      {enabled && (
+        <>
+          {contacts.length > 0 && (
+            <div className="grid gap-1.5">
+              {contacts.map((c) => (
+                <label key={c.email} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="size-4"
+                    checked={selected.includes(c.email)}
+                    onChange={(e) =>
+                      setChecked((prev) => (e.target.checked ? [...prev, c.email] : prev.filter((x) => x !== c.email)))
+                    }
+                  />
+                  {c.name}
+                  <span dir="ltr" className="text-muted-foreground">
+                    {c.email}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+          <Field id="meeting-invite-extra" label="כתובות נוספות" error={error}>
+            <Input
+              dir="ltr"
+              value={extra}
+              onChange={(e) => setExtra(e.target.value)}
+              placeholder="name@example.com, ..."
+            />
+          </Field>
+          <p className="text-muted-foreground text-xs">
+            Google ישלח הזמנה מהחשבון שלך, ועדכונים אם הפגישה משתנה או מתבטלת. דורש חיבור ל-Google Calendar.
+          </p>
+        </>
+      )}
+    </fieldset>
+  );
+}
+
 // משימות לבחירה: מסוננות לפי הלקוח, ומשימה שכבר משויכת נשארת ברשימה גם אם הושלמה
 function useTaskChoices(tasks: TaskOption[], clientId: string, meeting: MeetingItem | null) {
   return useMemo(() => {
@@ -111,6 +183,7 @@ function MeetingForm({
   state,
   clients,
   tasks,
+  contacts,
   onDone,
   onLogWork,
 }: Options & {
@@ -232,6 +305,15 @@ function MeetingForm({
           </NativeSelect>
         </Field>
       </div>
+
+      {/* אירוע שיובא מ-Google בלי מוזמנים (ייתכן שמישהו אחר ארגן אותו): לא מנהלים מכאן את המוזמנים */}
+      {!isPersonal && (!meeting || meeting.source === "app" || meeting.invite_emails.length > 0) && (
+        <InviteFields
+          contacts={contacts.filter((c) => c.client_id === clientId)}
+          initial={v?.invite_emails !== undefined ? splitEmails(v.invite_emails) : (meeting?.invite_emails ?? [])}
+          error={fe.invite_emails}
+        />
+      )}
 
       <Field id="meeting-location" label="מיקום או קישור" error={fe.location}>
         <Input name="location" defaultValue={v?.location ?? meeting?.location ?? ""} maxLength={500} />

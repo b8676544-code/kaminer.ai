@@ -6,10 +6,12 @@ import { ChevronRightIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BudgetCard } from "@/features/projects/budget-card";
 import { ProjectFormDialog } from "@/features/projects/project-form-dialog";
 import { getProject } from "@/features/projects/queries";
 import { PROJECT_STATUS_LABELS } from "@/features/projects/schemas";
 import { formatDate, formatMinutes } from "@/features/shared/format";
+import { formatMoney } from "@/features/shared/pricing";
 import { PricingCard } from "@/features/shared/pricing-card";
 import { PriorityBadge, StatusBadge } from "@/features/tasks/badges";
 
@@ -28,7 +30,7 @@ async function ProjectDetails({ params }: Pick<PageProps<"/projects/[id]">, "par
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const details = await getProject(id);
   if (!details) notFound();
-  const { project, tasks, billableMinutes } = details;
+  const { project, tasks, billableMinutes, budget } = details;
   const client = project.clients;
   const openTasks = tasks.filter((t) => t.status !== "done");
   const estimate = tasks.reduce((sum, t) => sum + (t.estimate_minutes ?? 0), 0);
@@ -98,6 +100,13 @@ async function ProjectDetails({ params }: Pick<PageProps<"/projects/[id]">, "par
                       </Link>
                       <StatusBadge status={t.status} />
                       <PriorityBadge priority={t.priority} />
+                      {t.billed_separately ? (
+                        <Badge variant="outline">מחיר נפרד</Badge>
+                      ) : (
+                        t.project_share != null && (
+                          <span className="text-muted-foreground tabular-nums">{formatMoney(Number(t.project_share))}</span>
+                        )
+                      )}
                       <span className="text-muted-foreground ms-auto">{formatDate(t.due_date)}</span>
                     </li>
                   ))}
@@ -118,6 +127,7 @@ async function ProjectDetails({ params }: Pick<PageProps<"/projects/[id]">, "par
             }}
             billableMinutes={billableMinutes}
           />
+          <BudgetCard budget={budget} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">פרטים</CardTitle>

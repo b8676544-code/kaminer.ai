@@ -210,3 +210,27 @@ describe("logWorkSchema", () => {
     });
   });
 });
+
+describe("הזמנה במייל", () => {
+  const base = { title: "פגישת אפיון", date: "2026-11-24", start: "10:00", end: "11:00" };
+
+  it("כתובות מנוקות, באותיות קטנות ובלי כפילויות", () => {
+    const r = meetingSchema.safeParse({ ...base, invite_emails: "Levi@Example.com, levi@example.com;cohen@example.com" });
+    expect(r.data?.invite_emails).toEqual(["levi@example.com", "cohen@example.com"]);
+  });
+
+  it("כתובת לא תקינה: שגיאה בשדה", () => {
+    const r = meetingSchema.safeParse({ ...base, invite_emails: "not-an-email" });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0].path[0]).toBe("invite_emails");
+  });
+
+  it("פגישה אישית: בלי מוזמנים", () => {
+    const r = meetingSchema.safeParse({ ...base, is_personal: "true", invite_emails: "levi@example.com" });
+    expect(r.data?.invite_emails).toEqual([]);
+  });
+
+  it("בלי השדה בטופס: לא משנים את הרשימה", () => {
+    expect(meetingSchema.safeParse(base).data?.invite_emails).toBeUndefined();
+  });
+});

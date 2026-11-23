@@ -82,23 +82,44 @@ export async function listEvents(
   return { events, nextSyncToken };
 }
 
-export function insertEvent(accessToken: string, calendarId: string, eventId: string, body: GoogleEventBody) {
-  return gfetch<GoogleEvent>(accessToken, `${cal(calendarId)}/events`, {
+// כשיש מוזמנים: Google שולח להם הזמנה, עדכון או ביטול במייל
+export type NotifyOpts = { notify?: boolean };
+const notifyQuery = (opts: NotifyOpts) => (opts.notify ? "?sendUpdates=all" : "");
+
+export function insertEvent(
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+  body: GoogleEventBody,
+  opts: NotifyOpts = {},
+) {
+  return gfetch<GoogleEvent>(accessToken, `${cal(calendarId)}/events${notifyQuery(opts)}`, {
     method: "POST",
     body: JSON.stringify({ id: eventId, ...body }),
   });
 }
 
-export function patchEvent(accessToken: string, calendarId: string, eventId: string, body: GoogleEventBody) {
-  return gfetch<GoogleEvent>(accessToken, `${cal(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+export function patchEvent(
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+  body: GoogleEventBody,
+  opts: NotifyOpts = {},
+) {
+  return gfetch<GoogleEvent>(accessToken, `${cal(calendarId)}/events/${encodeURIComponent(eventId)}${notifyQuery(opts)}`, {
     method: "PATCH",
     body: JSON.stringify(body),
   });
 }
 
-export async function deleteEvent(accessToken: string, calendarId: string, eventId: string): Promise<void> {
+export async function deleteEvent(
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+  opts: NotifyOpts = {},
+): Promise<void> {
   try {
-    await gfetch<void>(accessToken, `${cal(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+    await gfetch<void>(accessToken, `${cal(calendarId)}/events/${encodeURIComponent(eventId)}${notifyQuery(opts)}`, {
       method: "DELETE",
     });
   } catch (e) {

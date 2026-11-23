@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { projectBudget } from "./budget";
 import type { ProjectStatus } from "./schemas";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
@@ -11,8 +12,10 @@ async function billableMinutesByProject(supabase: Supabase, projectIds: string[]
   if (projectIds.length === 0) return totals;
   const { data, error } = await supabase
     .from("time_entries")
-    .select("duration_minutes, tasks!inner(project_id)")
+    .select("duration_minutes, tasks!inner(project_id, billed_separately)")
     .in("tasks.project_id", projectIds)
+    // משימה במחיר נפרד מחויבת בעצמה, ולכן השעות שלה לא נכנסות למחיר הפרויקט
+    .eq("tasks.billed_separately", false)
     .eq("is_billable", true)
     .not("ended_at", "is", null);
   if (error) throw error;
@@ -75,25 +78,64 @@ export async function getProject(id: string) {
     supabase.from("projects").select("*, clients(id, name, hourly_rate)").eq("id", id).maybeSingle(),
     supabase
       .from("tasks")
-      .select("id, title, status, priority, due_date, estimate_minutes")
+      .select(
+        "id, title, status, priority, due_date, estimate_minutes, project_share, billed_separately, pricing_type, hourly_rate, final_price, assignee_freelancer_id, freelancer_cost, freelancer_cost_in_project, freelancers(full_name)",
+      )
       .eq("project_id", id)
       .order("due_date", { ascending: true, nullsFirst: false }),
   ]);
   if (projectRes.error) throw projectRes.error;
   if (!projectRes.data) return null;
-  const minutes = await billableMinutesByProject(supabase, [id]);
-  return { project: projectRes.data, tasks: tasksRes.data ?? [], billableMinutes: minutes.get(id) ?? 0 };
+  if (tasksRes.error) throw tasksRes.error;
+  const taskIds = tasksRes.data.map((t) => t.id);
+  const [minutes, byTask] = await Promise.all([
+    billableMinutesByProject(supabase, [id]),
+    billableMinutesByTask(supabase, taskIds),
+  ]);
+  const tasks = tasksRes.data.map((t) => ({ ...t, billableMinutes: byTask.get(t.id) ?? 0 }));
+  const billableMinutes = minutes.get(id) ?? 0;
+  return {
+    project: projectRes.data,
+    tasks,
+    billableMinutes,
+    budget: projectBudget({ ...projectRes.data, billableMinutes }, tasks),
+  };
+}
+
+// דקות לחיוב לכל משימה (לחיוב נפרד לפי שעה)
+async function billableMinutesByTask(supabase: Supabase, taskIds: string[]): Promise<Map<string, number>> {
+  const totals = new Map<string, number>();
+  if (taskIds.length === 0) return totals;
+  const { data, error } = await supabase
+    .from("time_entries")
+    .select("task_id, duration_minutes")
+    .in("task_id", taskIds)
+    .eq("is_billable", true)
+    .not("ended_at", "is", null);
+  if (error) throw error;
+  for (const row of data) totals.set(row.task_id, (totals.get(row.task_id) ?? 0) + (row.duration_minutes ?? 0));
+  return totals;
 }
 
 // פרויקטים פעילים לבחירה בטופס משימה (מסוננים בטופס לפי הלקוח)
 export async function listProjectOptions(includeId?: string | null) {
   const supabase = await createClient();
-  let query = supabase.from("projects").select("id, name, client_id").order("name");
+  let query = supabase
+    .from("projects")
+    .select("id, name, client_id, final_price, tasks(id, project_share, billed_separately)")
+    .order("name");
   // includeId מגיע מה-DB (המשימה הנערכת), אבל נבדק בכל זאת לפני שנכנס לביטוי הסינון
   const safeId = includeId && /^[0-9a-f-]{36}$/i.test(includeId) ? includeId : null;
   query = safeId ? query.or(`status.eq.active,id.eq.${safeId}`) : query.eq("status", "active");
   const { data } = await query;
-  return data ?? [];
+  return (data ?? []).map(({ tasks, final_price, ...p }) => ({
+    ...p,
+    // המחיר הכללי: גלובלי, או סופי שנקבע בתמחור לפי שעה
+    price: final_price == null ? null : Number(final_price),
+    shares: tasks
+      .filter((t) => !t.billed_separately && t.project_share != null)
+      .map((t) => ({ task_id: t.id, share: Number(t.project_share) })),
+  }));
 }
 
 export type ProjectOption = Awaited<ReturnType<typeof listProjectOptions>>[number];

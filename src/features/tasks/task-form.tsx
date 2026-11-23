@@ -9,7 +9,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/features/shared/field";
 import type { ActionState } from "@/features/shared/form";
-import type { Pricing } from "@/features/shared/pricing";
+import { formatMoney, type Pricing } from "@/features/shared/pricing";
 import { PricingFields } from "@/features/shared/pricing-fields";
 import {
   CATEGORY_LABELS,
@@ -40,6 +40,9 @@ export type TaskFormValues = {
   pricing_type: Pricing["pricing_type"];
   hourly_rate: number | null;
   final_price: number | null;
+  project_share: number | null;
+  billed_separately: boolean;
+  freelancer_cost_in_project: boolean;
   // ביצירה מתבנית בלבד
   template_id?: string | null;
   checklist?: string[];
@@ -47,7 +50,50 @@ export type TaskFormValues = {
 
 type Option = { id: string; name: string };
 type ClientOption = Option & { hourly_rate: number | null };
-type ProjectOption = Option & { client_id: string };
+type ProjectOption = Option & {
+  client_id: string;
+  // המחיר הכללי (גלובלי או סופי שנקבע) והחלקים שכבר חולקו למשימות, לרמז "נשאר לחלק"
+  price: number | null;
+  shares: { task_id: string; share: number }[];
+};
+
+// בחירה בין שתי אפשרויות, נשלחת כ-"true"/"false"
+function Choice({
+  name,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  name: string;
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  options: [string, string]; // [false, true]
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <span className="text-sm font-medium">{label}</span>
+      <input type="hidden" name={name} value={String(value)} />
+      <div role="radiogroup" aria-label={label} className="bg-muted flex w-fit gap-1 rounded-md p-1 text-sm">
+        {[false, true].map((v, i) => (
+          <button
+            key={options[i]}
+            type="button"
+            role="radio"
+            aria-checked={value === v}
+            onClick={() => onChange(v)}
+            className={
+              value === v ? "bg-background rounded px-3 py-1 font-medium shadow-sm" : "text-muted-foreground rounded px-3 py-1"
+            }
+          >
+            {options[i]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function TaskForm({
   task,
@@ -65,6 +111,8 @@ export function TaskForm({
   const [freelancerId, setFreelancerId] = useState(task.assignee_freelancer_id ?? "");
   const [clientId, setClientId] = useState(task.client_id ?? "");
   const [projectId, setProjectId] = useState(task.project_id ?? "");
+  const [billedSeparately, setBilledSeparately] = useState(task.billed_separately);
+  const [freelancerInProject, setFreelancerInProject] = useState(task.freelancer_cost_in_project);
   const fe = state.fieldErrors ?? {};
   const isPersonal = category === "personal";
   const isNew = !task.id;
@@ -76,6 +124,9 @@ export function TaskForm({
   const projectChoices = clientId ? selectableProjects.filter((p) => p.client_id === clientId) : selectableProjects;
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name;
   const clientRate = clients.find((c) => c.id === clientId)?.hourly_rate ?? null;
+  const project = projects.find((p) => p.id === projectId);
+  // מה כבר חולק למשימות אחרות בפרויקט (בלי המשימה הנערכת)
+  const sharedToOthers = project?.shares.filter((s) => s.task_id !== task.id).reduce((sum, s) => sum + s.share, 0) ?? 0;
 
   return (
     <form action={action} className="grid max-w-2xl gap-5">
@@ -210,9 +261,58 @@ export function TaskForm({
         )}
       </div>
 
+      {!isPersonal && projectId && freelancerId && (
+        <Choice
+          name="freelancer_cost_in_project"
+          label="עלות הפרילנסר"
+          value={freelancerInProject}
+          onChange={setFreelancerInProject}
+          options={["הוצאה נפרדת", "מתוך תקציב הפרויקט"]}
+        />
+      )}
+
       {!isPersonal &&
         (projectId ? (
-          <p className="text-muted-foreground text-sm">המשימה מתומחרת במסגרת הפרויקט, ולכן אין לה תמחור נפרד.</p>
+          <fieldset className="grid gap-3 rounded-lg border p-4">
+            <legend className="px-1 text-sm font-medium">תמחור מול הלקוח</legend>
+            <Choice
+              name="billed_separately"
+              label="המשימה"
+              value={billedSeparately}
+              onChange={setBilledSeparately}
+              options={["כלולה במחיר הפרויקט", "במחיר נפרד"]}
+            />
+            {billedSeparately ? (
+              <PricingFields
+                key={`${clientId}-separate`}
+                idPrefix="task"
+                values={{ pricing_type: task.pricing_type, hourly_rate: task.hourly_rate, final_price: task.final_price }}
+                defaultRate={clientRate}
+                errors={fe}
+              />
+            ) : (
+              <div className="grid gap-1.5">
+                <Field id="project_share" label="חלק מהמחיר הכללי (₪)" error={fe.project_share}>
+                  <Input
+                    name="project_share"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    dir="ltr"
+                    placeholder="לא חובה"
+                    defaultValue={task.project_share ?? ""}
+                    className="max-w-48"
+                  />
+                </Field>
+                {project?.price != null && (
+                  <p className="text-muted-foreground text-xs">
+                    מחיר הפרויקט {formatMoney(project.price)} · חולק למשימות אחרות {formatMoney(sharedToOthers)} · נשאר
+                    לחלק {formatMoney(project.price - sharedToOthers)}
+                  </p>
+                )}
+              </div>
+            )}
+          </fieldset>
         ) : (
           <PricingFields
             key={clientId}

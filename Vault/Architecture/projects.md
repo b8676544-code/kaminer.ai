@@ -16,12 +16,14 @@ tags:
 
 <!-- auto:start -->
 ## קבצים (מתעדכן אוטומטית)
-_עודכן: 23.11.2026 · 4 קבצים. לא לערוך ידנית בין הסימונים._
+_עודכן: 24.11.2026 · 6 קבצים. לא לערוך ידנית בין הסימונים._
 
 | קובץ | מה יש בו |
 |---|---|
 | `src/features/projects/actions.ts` | saveProject, lockComputedPrice |
-| `src/features/projects/project-form-dialog.tsx` | ProjectFormValues, ProjectFormDialog |
-| `src/features/projects/queries.ts` | listClientProjects, ClientProject, getProject, listProjectOptions, ProjectOption, taskBillableMinutes |
+| `src/features/projects/budget-card.tsx` | BudgetCard |
+| `src/features/projects/budget.ts` | BudgetTask, projectBudget, ProjectBudget |
+| `src/features/projects/project-form-dialog.tsx` | ProjectFormValues, ProjectClientOption, ProjectFormDialog |
+| `src/features/projects/queries.ts` | listClientProjects, ClientProject, listProjects, ProjectListItem, getProject, listProjectOptions, ProjectOption, taskBillableMinutes |
 | `src/features/projects/schemas.ts` | projectStatusSchema, ProjectStatus, PROJECT_STATUS_LABELS, projectSchema, ProjectInput |
 <!-- auto:end -->

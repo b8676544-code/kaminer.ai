@@ -7,6 +7,10 @@ export const taskCategorySchema = z.enum(["clients", "marketing", "business", "p
 export const taskStatusSchema = z.enum(["todo", "in_progress", "waiting_client", "done"], "סטטוס לא תקין");
 export const taskPrioritySchema = z.enum(["urgent", "normal", "low"], "עדיפות לא תקינה");
 
+// "true"/"false" מבחירה בטופס. בלי ערך: ברירת המחדל
+const formBoolean = (fallback: boolean) =>
+  z.preprocess((v) => (v === "true" || v === true ? true : v === "false" || v === false ? false : fallback), z.boolean());
+
 const dateSchema = z.preprocess(
   (v) => (v === "" || v == null ? null : v),
   z.iso.date("תאריך לא תקין").nullable(),
@@ -60,20 +64,40 @@ export const taskSchema = z
     freelancer_cost: optionalNumber(z.number("מספר לא תקין").min(0, "עלות לא יכולה להיות שלילית")),
     project_id: optionalUuid.default(null),
     ...pricingFields,
+    // משימה בפרויקט: חלק מהמחיר הכללי, או מחיר נפרד ללקוח
+    project_share: optionalNumber(
+      z.number("מספר לא תקין").min(0, "סכום לא יכול להיות שלילי").max(99999999, "סכום גדול מדי"),
+    ).default(null),
+    billed_separately: formBoolean(false),
+    // עלות הפרילנסר יורדת מתקציב הפרויקט, או שהיא הוצאה נפרדת
+    freelancer_cost_in_project: formBoolean(true),
   })
   .superRefine((task, ctx) => {
     const errors = { ...categoryRuleErrors(task), ...projectRuleErrors(task) };
-    // משימה בפרויקט או אישית לא מתומחרת בעצמה, ולכן כללי התמחור חלים רק על משימה בודדת
-    if (!task.project_id && task.category !== "personal") Object.assign(errors, pricingRuleErrors(task));
+    // כללי התמחור חלים רק על משימה שמתומחרת בעצמה: בודדת, או בפרויקט במחיר נפרד
+    if (ownPricing(task)) Object.assign(errors, pricingRuleErrors(task));
     for (const [path, message] of Object.entries(errors)) {
       ctx.addIssue({ code: "custom", path: [path], message });
     }
   })
-  // משימה בפרויקט מתומחרת בפרויקט; משימה אישית לא מתומחרת. תואם ל-CHECK ב-DB
-  .transform((task) => ({
-    ...task,
-    ...(task.project_id || task.category === "personal" ? NO_PRICING : normalizePricing(task)),
-  }));
+  // מאפס את מה שלא שייך למצב (בלי פרויקט / כלולה בפרויקט / נפרדת). תואם ל-CHECK ‏tasks_project_billing
+  .transform((task) => {
+    const inProject = Boolean(task.project_id) && task.category !== "personal";
+    const separate = inProject && task.billed_separately;
+    return {
+      ...task,
+      ...(ownPricing(task) ? normalizePricing(task) : NO_PRICING),
+      project_share: inProject && !separate ? task.project_share : null,
+      billed_separately: separate,
+      freelancer_cost_in_project: inProject && task.assignee_freelancer_id ? task.freelancer_cost_in_project : true,
+    };
+  });
+
+// משימה שמתומחרת בעצמה: לא אישית, ובלי פרויקט או בפרויקט במחיר נפרד
+function ownPricing(task: { category: string; project_id: string | null; billed_separately: boolean }): boolean {
+  if (task.category === "personal") return false;
+  return !task.project_id || task.billed_separately;
+}
 
 export type TaskInput = z.output<typeof taskSchema>;
 

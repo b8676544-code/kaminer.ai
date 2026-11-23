@@ -6,6 +6,7 @@ import { ChevronRightIcon, CopyPlusIcon, PencilIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { taskBillableMinutes } from "@/features/projects/queries";
+import { formatMoney } from "@/features/shared/pricing";
 import { PricingCard } from "@/features/shared/pricing-card";
 import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
 import { CategoryBadge, PriorityBadge } from "@/features/tasks/badges";
@@ -146,7 +147,14 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
                       <Link href={`/projects/${task.projects.id}`} className="hover:underline">
                         {task.projects.name}
                       </Link>
-                      <span className="text-muted-foreground"> · מתומחר בפרויקט</span>
+                    </dd>
+                    <dt className="text-muted-foreground">תמחור</dt>
+                    <dd>
+                      {task.billed_separately
+                        ? "במחיר נפרד"
+                        : task.project_share != null
+                          ? `חלק מהפרויקט: ${formatMoney(Number(task.project_share))}`
+                          : "כלולה במחיר הפרויקט"}
                     </dd>
                   </>
                 )}
@@ -160,7 +168,14 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
                 {task.freelancer_cost != null && (
                   <>
                     <dt className="text-muted-foreground">עלות פרילנסר</dt>
-                    <dd>₪{task.freelancer_cost}</dd>
+                    <dd>
+                      {formatMoney(Number(task.freelancer_cost))}
+                      {task.project_id && (
+                        <span className="text-muted-foreground">
+                          {task.freelancer_cost_in_project ? " · מתוך תקציב הפרויקט" : " · הוצאה נפרדת"}
+                        </span>
+                      )}
+                    </dd>
                   </>
                 )}
                 {task.task_templates && (
@@ -183,8 +198,8 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
             </CardContent>
           </Card>
 
-          {/* משימה בפרויקט מתומחרת בפרויקט; משימה אישית לא מתומחרת */}
-          {!task.project_id && task.category !== "personal" && (
+          {/* משימה מתומחרת בעצמה: בודדת, או בפרויקט במחיר נפרד. משימה אישית לא מתומחרת */}
+          {(!task.project_id || task.billed_separately) && task.category !== "personal" && (
             <PricingCard
               entity="task"
               entityId={task.id}

@@ -6,6 +6,26 @@ import { timeEntrySchema } from "@/features/time/schemas";
 
 const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "שעה לא תקינה");
 
+// מוזמנים במייל: מחרוזת כתובות מופרדות בפסיק. בלי השדה בטופס: לא משנים (undefined)
+const inviteEmails = z.preprocess(
+  (v) =>
+    typeof v === "string"
+      ? [
+          ...new Set(
+            v
+              .split(/[s,;]+/)
+              .map((e) => e.trim().toLowerCase())
+              .filter(Boolean),
+          ),
+        ]
+      : undefined,
+  z.array(z.email("כתובת מייל לא תקינה")).max(30, "עד 30 מוזמנים").optional(),
+);
+
+// פגישה אישית לא נשלחת למוזמנים
+const invitesFor = (isPersonal: boolean, emails: string[] | undefined) =>
+  emails === undefined ? undefined : isPersonal ? [] : emails;
+
 // שדות השיוך והפרטים, משותפים לפגישה עם שעות ולאירוע של יום שלם
 const meetingDetails = {
   // "true" מהטופס = פגישה אישית (משפחה, רופא וכד'). ברירת מחדל: עסקית
@@ -14,6 +34,7 @@ const meetingDetails = {
   task_id: optionalUuid,
   location: optionalText,
   notes: optionalText,
+  invite_emails: inviteEmails,
 };
 
 // פגישה מהטופס: תאריך ושעות בשעון ירושלים, הפלט ב-UTC.
@@ -41,6 +62,7 @@ export const meetingSchema = z
     task_id: rest.task_id,
     location: rest.location,
     notes: rest.notes,
+    invite_emails: invitesFor(rest.is_personal, rest.invite_emails),
   }));
 
 export type MeetingInput = z.output<typeof meetingSchema>;
@@ -51,7 +73,11 @@ export const allDayMeetingSchema = z
     title: z.string().trim().min(1, "כותרת חובה").max(200, "עד 200 תווים"),
     ...meetingDetails,
   })
-  .transform((v) => ({ ...v, client_id: v.is_personal ? null : v.client_id }));
+  .transform((v) => ({
+    ...v,
+    client_id: v.is_personal ? null : v.client_id,
+    invite_emails: invitesFor(v.is_personal, v.invite_emails),
+  }));
 
 // "רשום כזמן עבודה": רישום זמן ידני על משימה, מקושר לפגישה
 export const logWorkSchema = z

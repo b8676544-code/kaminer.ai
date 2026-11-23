@@ -3,7 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
 const MEETING_SELECT =
-  "id, title, starts_at, ends_at, is_all_day, is_personal, source, client_id, task_id, location, notes, clients(name), tasks(title, status), time_entries(id)";
+  "id, title, starts_at, ends_at, is_all_day, is_personal, source, client_id, task_id, location, notes, invite_emails, clients(name), tasks(title, status), time_entries(id)";
 
 // פגישות שנוגעות בטווח [from, to). פגישות שנמחקו (מחיקה רכה) לא מוצגות
 export async function listMeetings(from: string, to: string) {
@@ -44,6 +44,24 @@ export async function listClientMeetings(clientId: string) {
 }
 
 export type ClientMeeting = Awaited<ReturnType<typeof listClientMeetings>>["upcoming"][number];
+
+// כתובות להזמנה לפגישה: המייל של הלקוח ושל אנשי הקשר שלו (לקוחות פעילים)
+export async function listInviteContacts() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("clients")
+    .select("id, name, email, client_contacts(name, email)")
+    .eq("status", "active");
+  if (error) throw error;
+  return data.flatMap((c) => [
+    ...(c.email ? [{ client_id: c.id, name: c.name, email: c.email.toLowerCase() }] : []),
+    ...c.client_contacts
+      .filter((p) => p.email)
+      .map((p) => ({ client_id: c.id, name: p.name, email: p.email!.toLowerCase() })),
+  ]);
+}
+
+export type InviteContact = Awaited<ReturnType<typeof listInviteContacts>>[number];
 
 // משימות פתוחות לבחירה בטופס פגישה וברישום זמן
 export async function listOpenTaskOptions() {
