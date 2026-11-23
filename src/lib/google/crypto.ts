@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 // הצפנת refresh token של Google לפני שמירה ב-DB: ‏AES-256-GCM.
