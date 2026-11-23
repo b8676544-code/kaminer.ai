@@ -107,3 +107,19 @@ insert into public.time_entries (task_id, user_id, started_at, ended_at, duratio
   ('a0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', now() - interval '2 days', now() - interval '2 days' + interval '75 minutes', 75, false),
   ('a0000000-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', now() - interval '8 days', now() - interval '8 days' + interval '50 minutes', 50, true),
   ('a0000000-0000-0000-0000-000000000006', '11111111-1111-1111-1111-111111111111', now() - interval '1 day', now() - interval '1 day' + interval '40 minutes', 40, false);
+
+-- ───────────── פגישות ─────────────
+-- זמנים יחסיים להיום, בשעון ירושלים. אירוע יום שלם מדמה אירוע שהגיע מ-Google
+insert into public.meetings (owner_id, title, starts_at, ends_at, client_id, task_id, location, notes, source, is_all_day) values
+  ('11111111-1111-1111-1111-111111111111', 'פגישת סטטוס חודשית',
+   ((current_date - 1) + time '10:00') at time zone 'Asia/Jerusalem', ((current_date - 1) + time '11:00') at time zone 'Asia/Jerusalem',
+   'c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'החנות, רח׳ רבי עקיבא', null, 'app', false),
+  ('11111111-1111-1111-1111-111111111111', 'שיחת היכרות עם משה',
+   ((current_date + 1) + time '09:30') at time zone 'Asia/Jerusalem', ((current_date + 1) + time '10:15') at time zone 'Asia/Jerusalem',
+   'c0000000-0000-0000-0000-000000000002', null, 'https://meet.google.com/abc-defg-hij', 'לברר תפריט לחגים', 'app', false),
+  ('11111111-1111-1111-1111-111111111111', 'אישור עיצוב עלון',
+   ((current_date + 1) + time '10:00') at time zone 'Asia/Jerusalem', ((current_date + 1) + time '11:00') at time zone 'Asia/Jerusalem',
+   'c0000000-0000-0000-0000-000000000001', null, null, null, 'app', false),
+  ('11111111-1111-1111-1111-111111111111', 'יום עיון לבעלות עסקים',
+   (current_date + 3)::timestamp at time zone 'Asia/Jerusalem', (current_date + 4)::timestamp at time zone 'Asia/Jerusalem',
+   null, null, null, null, 'google', true);
