@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "calendar_connections": {
                   Row: {
-                    "calendar_id": string,"created_at": string,"google_email": string | null,"id": string,"last_synced_at": string | null,"refresh_token": string,"sync_token": string | null,"updated_at": string,"user_id": string
+                    "calendar_id": string,"calendar_name": string | null,"calendar_selected_at": string | null,"created_at": string,"google_email": string | null,"id": string,"last_sync_attempt_at": string | null,"last_sync_error": string | null,"last_synced_at": string | null,"refresh_token": string,"sync_lock_until": string | null,"sync_token": string | null,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "calendar_id"?: string,"created_at"?: string,"google_email"?: string | null,"id"?: string,"last_synced_at"?: string | null,"refresh_token": string,"sync_token"?: string | null,"updated_at"?: string,"user_id": string
+                    "calendar_id"?: string,"calendar_name"?: string | null,"calendar_selected_at"?: string | null,"created_at"?: string,"google_email"?: string | null,"id"?: string,"last_sync_attempt_at"?: string | null,"last_sync_error"?: string | null,"last_synced_at"?: string | null,"refresh_token": string,"sync_lock_until"?: string | null,"sync_token"?: string | null,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "calendar_id"?: string,"created_at"?: string,"google_email"?: string | null,"id"?: string,"last_synced_at"?: string | null,"refresh_token"?: string,"sync_token"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "calendar_id"?: string,"calendar_name"?: string | null,"calendar_selected_at"?: string | null,"created_at"?: string,"google_email"?: string | null,"id"?: string,"last_sync_attempt_at"?: string | null,"last_sync_error"?: string | null,"last_synced_at"?: string | null,"refresh_token"?: string,"sync_lock_until"?: string | null,"sync_token"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -91,14 +91,14 @@ isOneToOne: false
                   ]
                 },"meetings": {
                   Row: {
-                    "client_id": string | null,"created_at": string,"deleted_at": string | null,"ends_at": string,"google_etag": string | null,"google_event_id": string | null,"id": string,"is_all_day": boolean,"last_synced_at": string | null,"location": string | null,"notes": string | null,"owner_id": string,"source": string,"starts_at": string,"task_id": string | null,"title": string,"updated_at": string
+                    "client_id": string | null,"created_at": string,"deleted_at": string | null,"ends_at": string,"google_etag": string | null,"google_event_id": string | null,"id": string,"is_all_day": boolean,"last_synced_at": string | null,"location": string | null,"needs_push": boolean,"notes": string | null,"owner_id": string,"source": string,"starts_at": string,"task_id": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at": string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at": string,"task_id"?: string | null,"title": string,"updated_at"?: string
+                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at": string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"needs_push"?: boolean,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at": string,"task_id"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at"?: string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at"?: string,"task_id"?: string | null,"title"?: string,"updated_at"?: string
+                    "client_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"ends_at"?: string,"google_etag"?: string | null,"google_event_id"?: string | null,"id"?: string,"is_all_day"?: boolean,"last_synced_at"?: string | null,"location"?: string | null,"needs_push"?: boolean,"notes"?: string | null,"owner_id"?: string,"source"?: string,"starts_at"?: string,"task_id"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -306,14 +306,14 @@ isOneToOne: false
           Views: {
             "calendar_connection_status": {
                   Row: {
-                    "calendar_id": string,"created_at": string,"google_email": string | null,"last_synced_at": string | null,"user_id": string
+                    "calendar_id": string,"calendar_name": string | null,"calendar_selected_at": string | null,"created_at": string,"google_email": string | null,"last_sync_attempt_at": string | null,"last_sync_error": string | null,"last_synced_at": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                           "calendar_id"?: string | null,"created_at"?: string | null,"google_email"?: string | null,"last_synced_at"?: string | null,"user_id"?: string | null
+                           "calendar_id"?: string | null,"calendar_name"?: string | null,"calendar_selected_at"?: string | null,"created_at"?: string | null,"google_email"?: string | null,"last_sync_attempt_at"?: string | null,"last_sync_error"?: string | null,"last_synced_at"?: string | null,"user_id"?: string | null
                          }
                         Update: {
-                           "calendar_id"?: string | null,"created_at"?: string | null,"google_email"?: string | null,"last_synced_at"?: string | null,"user_id"?: string | null
+                           "calendar_id"?: string | null,"calendar_name"?: string | null,"calendar_selected_at"?: string | null,"created_at"?: string | null,"google_email"?: string | null,"last_sync_attempt_at"?: string | null,"last_sync_error"?: string | null,"last_synced_at"?: string | null,"user_id"?: string | null
                          }
                         Relationships: [
                     {

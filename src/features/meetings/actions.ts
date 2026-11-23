@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { dbErrorMessage, formToObject, zodToState, type ActionState } from "@/features/shared/form";
 import { requireUser } from "@/lib/auth";
+import { syncCalendar } from "@/lib/google/sync";
 import { allDayMeetingSchema, logWorkSchema, meetingSchema, type MeetingInput } from "./schemas";
 
 const idSchema = z.guid();
@@ -14,6 +16,12 @@ type Supabase = Awaited<ReturnType<typeof requireUser>>["supabase"];
 // היומן, דף הלקוח והשעות בכותרת מושפעים, ולכן מרעננים את כל ה-layout
 function revalidateMeetings() {
   revalidatePath("/", "layout");
+}
+
+// אחרי שמירה או מחיקה: שולחים ל-Google ברקע, בלי לעכב את התשובה לטופס.
+// אם אין חיבור, syncCalendar חוזרת מיד. force עוקף את ה-throttle אבל לא את הנעילה.
+function pushToGoogle(userId: string) {
+  after(() => syncCalendar(userId, { force: true }).catch((e) => console.error("[google-sync]", e)));
 }
 
 // ה-RLS של meetings בודק רק את owner_id. מוודאים שהלקוח והמשימה גלויים למשתמשת
@@ -37,7 +45,7 @@ export async function saveMeeting(_prev: ActionState, formData: FormData): Promi
   const raw = formToObject(formData);
   // React 19 מאפס את הטופס אחרי שליחה. מחזירים את הערכים כדי שלא יימחקו בשגיאה
   const values = raw;
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
 
   const id = raw.id ? idSchema.safeParse(raw.id) : null;
   if (id && !id.success) return { error: "מזהה לא תקין" };
@@ -73,6 +81,7 @@ export async function saveMeeting(_prev: ActionState, formData: FormData): Promi
     return { error: "שעות לא תקינות", values };
   }
 
+  pushToGoogle(user.id);
   revalidateMeetings();
   return { ok: true };
 }
@@ -81,7 +90,7 @@ export async function saveMeeting(_prev: ActionState, formData: FormData): Promi
 export async function deleteMeeting(meetingId: string): Promise<ActionState> {
   const id = idSchema.safeParse(meetingId);
   if (!id.success) return { error: "מזהה לא תקין" };
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
 
   const { data, error } = await supabase
     .from("meetings")
@@ -93,6 +102,7 @@ export async function deleteMeeting(meetingId: string): Promise<ActionState> {
   if (error) return { error: dbErrorMessage(error) };
   if (!data) return { error: "הפגישה לא נמצאה" };
 
+  pushToGoogle(user.id);
   revalidateMeetings();
   return { ok: true };
 }

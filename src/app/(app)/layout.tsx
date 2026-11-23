@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
+import { GoogleAutoSync } from "@/features/google/auto-sync";
 import { HeaderTimerSlot } from "@/features/time/header-timer-slot";
 import { TimerProvider } from "@/features/time/timer-provider";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <TimerProvider>
+      <GoogleAutoSync />
       <div className="flex min-h-screen">
         {/* סרגל צד: בצד ימין (תחילת השורה ב-RTL) */}
         <aside className="bg-muted/30 hidden w-56 shrink-0 border-e p-4 md:block">

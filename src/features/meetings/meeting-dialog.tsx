@@ -53,6 +53,7 @@ export function MeetingDialog({
               <DialogTitle>{meeting ? "עריכת פגישה" : "פגישה חדשה"}</DialogTitle>
               <DialogDescription>
                 {meeting?.is_all_day ? "אירוע של יום שלם. התאריכים נערכים ב-Google." : "השעות לפי שעון ישראל."}
+                {meeting?.source === "google" && " האירוע הגיע מ-Google Calendar, ושינויים יישלחו אליו."}
               </DialogDescription>
             </DialogHeader>
             <MeetingForm

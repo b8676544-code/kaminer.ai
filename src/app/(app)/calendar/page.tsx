@@ -6,6 +6,9 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { listActiveClientOptions } from "@/features/clients/queries";
+import { SyncErrorBanner } from "@/features/google/google-settings-card";
+import { getGoogleConnection } from "@/features/google/queries";
+import { SyncNowButton } from "@/features/google/sync-now-button";
 import { CalendarBoard } from "@/features/meetings/calendar-board";
 import { calendarRange, monthGrid, shiftDate, weekDays, type CalendarView } from "@/features/meetings/calendar-range";
 import { calendarHref, rangeTitle } from "@/features/meetings/labels";
@@ -41,11 +44,13 @@ async function CalendarContent({ searchParams }: Pick<PageProps<"/calendar">, "s
   const date = params.date ?? today;
   const { from, to } = calendarRange(view, date);
 
-  const [meetings, clients, tasks] = await Promise.all([
+  const [meetings, clients, tasks, google] = await Promise.all([
     listMeetings(from, to),
     listActiveClientOptions(),
     listOpenTaskOptions(),
+    getGoogleConnection(),
   ]);
+  const googleActive = Boolean(google?.calendar_selected_at);
   const days = view === "week" ? weekDays(date) : monthGrid(date).flat();
 
   return (
@@ -90,7 +95,10 @@ async function CalendarContent({ searchParams }: Pick<PageProps<"/calendar">, "s
             </Link>
           ))}
         </nav>
+        {googleActive && <SyncNowButton />}
       </div>
+
+      {google?.last_sync_error && <SyncErrorBanner error={google.last_sync_error} />}
 
       <CalendarBoard view={view} date={date} today={today} meetings={meetings} clients={clients} tasks={tasks} />
     </div>
