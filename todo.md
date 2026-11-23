@@ -5,7 +5,6 @@
 
 ## פתוח
 
-- [ ] **הגדרת Google Cloud לחיבור היומן** — (1) פרויקט ב-Google Cloud Console והפעלת Google Calendar API. (2) ‏OAuth consent screen מסוג **Internal** (חשבון Workspace). (3) ‏OAuth Client מסוג Web עם redirect ‏`http://localhost:3000/api/google/oauth/callback`. (4) למלא ב-`.env` את `GOOGLE_CLIENT_ID` ו-`GOOGLE_CLIENT_SECRET`, ומפתח מ-`openssl rand -base64 32` ל-`GOOGLE_TOKEN_ENCRYPTION_KEY`. (5) להפעיל מחדש את `npm run dev` · עדיפות: גבוהה · נוסף: 23.11.2026
 - [ ] **בדיקה ידנית של סנכרון Google** — חיבור ובחירת יומן. פגישה חדשה במערכת מופיעה ב-Google, ואירוע חדש ב-Google מופיע אחרי "סנכרן עכשיו". עריכה ומחיקה בשני הכיוונים, אירוע של יום שלם, אירוע חוזר, ניתוק וחיבור מחדש בלי כפילויות. לבדוק גם שהתקבל `sync_token` אחרי הסנכרון הראשון (אם לא, כל סנכרון יהיה מלא) · עדיפות: גבוהה · נוסף: 23.11.2026
 - [ ] **D3 אחרי חיבור Google** — סריקת סודות אחרי האינטגרציה הראשונה · עדיפות: גבוהה · נוסף: 23.11.2026
 - [ ] **cron לסנכרון Google בענן** — `src/app/api/cron/google-sync` שעובר על כל החיבורים וקורא ל-`syncCalendar` (PRD §9.2). שייך ל-E3 · עדיפות: בינונית · נוסף: 23.11.2026
@@ -37,4 +36,5 @@
 
 ## בוצע
 
+- [x] **הגדרת Google Cloud לחיבור היומן** — (1) פרויקט ב-Google Cloud Console והפעלת Google Calendar API. (2) ‏OAuth consent screen מסוג **Internal** (חשבון Workspace). (3) ‏OAuth Client מסוג Web עם redirect ‏`http://localhost:3000/api/google/oauth/callback`. (4) למלא ב-`.env` את `GOOGLE_CLIENT_ID` ו-`GOOGLE_CLIENT_SECRET`, ומפתח מ-`openssl rand -base64 32` ל-`GOOGLE_TOKEN_ENCRYPTION_KEY`. (5) להפעיל מחדש את `npm run dev` · עדיפות: גבוהה · נוסף: 23.11.2026 · בוצע: 23.11.2026
 - [x] **התקנת Docker Desktop ובדיקת `npm run db:start`** — נשאר פתוח מ-S2b. צריך את זה לפני שכותבים מיגרציות ומתחילים בפיצ'רים · עדיפות: גבוהה · נוסף: 18.11.2026 · בוצע: 19.11.2026

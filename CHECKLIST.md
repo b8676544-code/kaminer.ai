@@ -82,3 +82,4 @@
 | 23.11.2026 | D7 | ‏task_templates: משתמשת שנייה רואה 0 תבניות, עדכון, ארכיון ומחיקה לא משפיעים, והכנסה בשם הבעלים נחסמת. ‏`template_id` זר נחסם ב-policy של tasks וגם ב-`saveTask` |
 | 23.11.2026 | D1 | סנכרון דו־כיווני עם Google Calendar: OAuth ישיר עם state, ‏refresh token מוצפן ב-AES-GCM, מנוע `syncCalendar` (נעילה, ‏syncToken, דחיפה לפי `needs_push` שמסומן בטריגר), כרטיס בהגדרות, ‏auto-sync, וכפתור ובאנר ביומן. ‏105 בדיקות, build עובר. ‏OAuth מקצה לקצה עוד לא נבדק (חסרים מפתחות Google) |
 | 23.11.2026 | D7 | ‏Google: ‏anon חסום ב-routes, בטבלה וב-view. משתמשת שנייה רואה 0 שורות סטטוס ו-0 פגישות, ולא יכולה לשנות `needs_push`. ‏`refresh_token` חסום ל-authenticated ולא קיים ב-view |
+| 23.11.2026 | — | חיבור Google עובד מקצה לקצה: סנכרון ראשון, ‏sync_token, ושלוש פגישות נשלחו ל-Google. תוקנה שגיאת TLS ברשת מסוננת (`SELF_SIGNED_CERT_IN_CHAIN`): ‏`npm run dev` רץ דרך `scripts/dev.mjs` עם מאגר התעודות של Windows |

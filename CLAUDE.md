@@ -22,7 +22,7 @@
 - `tests/` — Vitest
 
 ## פקודות
-- `npm run dev` — שרת פיתוח (localhost:3000) · `npm run build` · `npm run lint` · `npm test`
+- `npm run dev` — שרת פיתוח (localhost:3000), דרך `scripts/dev.mjs` שמפעיל את מאגר התעודות של Windows (רשת מסוננת חותמת HTTPS) · `npm run build` · `npm run lint` · `npm test`
 - `npm run db:start` / `db:stop` — Supabase מקומי (דורש Docker) · `npm run db:reset` — מיגרציות + seed · `npm run db:types` — טיפוסים
 - רכיבי shadcn: `npx shadcn@latest add <name>` (ייתכן ש-ui.shadcn.com חסום ברשת — אז לכתוב ידנית)
 
