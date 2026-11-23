@@ -15,6 +15,7 @@ const FEATURE_NOTES = {
   tasks: "משימות",
   shared: "משותף",
   catalog: "קטלוג",
+  templates: "קטלוג",
   calendar: "יומן",
   meetings: "יומן",
   time: "שעון",

@@ -1,8 +1,11 @@
 import { Suspense } from "react";
+import { z } from "zod";
 
 import { listActiveClientOptions } from "@/features/clients/queries";
 import { listActiveFreelancerOptions } from "@/features/freelancers/queries";
 import { TaskForm, type TaskFormValues } from "@/features/tasks/task-form";
+import { getActiveTemplate, listActiveTemplateOptions } from "@/features/templates/queries";
+import { TemplatePicker } from "@/features/templates/template-picker";
 
 export const metadata = { title: "משימה חדשה — kaminer.ai" };
 
@@ -18,32 +21,51 @@ export default function NewTaskPage({ searchParams }: PageProps<"/tasks/new">) {
 }
 
 async function NewTaskForm({ searchParams }: Pick<PageProps<"/tasks/new">, "searchParams">) {
-  const [{ client }, clients, freelancers] = await Promise.all([
-    searchParams,
+  const { client, template: templateParam } = await searchParams;
+  const parsedTemplate = z.guid().safeParse(templateParam);
+  const templateId = parsedTemplate.success ? parsedTemplate.data : null;
+
+  const [clients, freelancers, templateOptions, template] = await Promise.all([
     listActiveClientOptions(),
     listActiveFreelancerOptions(),
+    listActiveTemplateOptions(),
+    templateId ? getActiveTemplate(templateId) : null,
   ]);
   // לקוח מראש (מכפתור "משימה ללקוח"), רק אם הוא באמת ברשימה
   const presetClient = typeof client === "string" && clients.some((c) => c.id === client) ? client : null;
 
+  const category = template?.category ?? (presetClient ? "clients" : "business");
   const task: TaskFormValues = {
-    title: "",
-    description: null,
-    category: presetClient ? "clients" : "business",
-    client_id: presetClient,
+    title: template?.title ?? "",
+    description: template?.description ?? null,
+    category,
+    // משימה אישית לא משויכת ללקוח
+    client_id: category === "personal" ? null : presetClient,
     status: "todo",
     priority: "normal",
     due_date: null,
-    estimate_minutes: null,
+    estimate_minutes: template?.default_estimate_minutes ?? null,
     assignee_freelancer_id: null,
     freelancer_cost: null,
+    template_id: template?.id ?? null,
+    checklist: template?.checklist ?? [],
   };
 
   return (
-    <TaskForm
-      task={task}
-      clients={clients}
-      freelancers={freelancers.map((f) => ({ id: f.id, name: f.full_name }))}
-    />
+    <div className="grid gap-5">
+      <TemplatePicker templates={templateOptions} selected={template?.id ?? null} />
+      {templateId && !template && (
+        <p role="alert" className="text-destructive text-sm">
+          התבנית לא נמצאה או שהיא בארכיון. אפשר לבחור תבנית אחרת או ליצור משימה ייחודית.
+        </p>
+      )}
+      {/* key: הטופס נטען מחדש כשמחליפים תבנית, כדי שה-defaultValue יתעדכן */}
+      <TaskForm
+        key={template?.id ?? "blank"}
+        task={task}
+        clients={clients}
+        freelancers={freelancers.map((f) => ({ id: f.id, name: f.full_name }))}
+      />
+    </div>
   );
 }

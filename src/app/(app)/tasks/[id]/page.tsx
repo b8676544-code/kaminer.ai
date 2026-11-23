@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRightIcon, PencilIcon } from "lucide-react";
+import { ChevronRightIcon, CopyPlusIcon, PencilIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { getTask } from "@/features/tasks/queries";
 import { StatusSwitcher } from "@/features/tasks/status-switcher";
 import { getRunningTimer } from "@/features/time/queries";
 import { TimeEntriesList } from "@/features/time/time-entries-list";
+import { TemplateFormDialog } from "@/features/templates/template-form-dialog";
 import { TimerButton } from "@/features/time/timer-button";
 import { cn } from "@/lib/utils";
 
@@ -47,13 +48,29 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
           <h1 className="text-2xl font-bold">{task.title}</h1>
           <CategoryBadge category={task.category} />
           <PriorityBadge priority={task.priority} />
-          <div className="ms-auto flex gap-2">
+          <div className="ms-auto flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm">
               <Link href={`/tasks/${task.id}/edit`}>
                 <PencilIcon />
                 עריכה
               </Link>
             </Button>
+            <TemplateFormDialog
+              title="שמירה כתבנית"
+              template={{
+                title: task.title,
+                description: task.description,
+                category: task.category,
+                default_estimate_minutes: task.estimate_minutes,
+                checklist: checklist.map((item) => item.text),
+              }}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <CopyPlusIcon />
+                  שמור כתבנית
+                </Button>
+              }
+            />
             <DeleteTaskButton taskId={task.id} />
           </div>
         </div>
@@ -132,7 +149,11 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
                 {task.task_templates && (
                   <>
                     <dt className="text-muted-foreground">מתבנית</dt>
-                    <dd>{task.task_templates.title}</dd>
+                    <dd>
+                      <Link href="/catalog" className="hover:underline">
+                        {task.task_templates.title}
+                      </Link>
+                    </dd>
                   </>
                 )}
                 {task.completed_at && (

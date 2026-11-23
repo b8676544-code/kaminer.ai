@@ -16,6 +16,16 @@ function revalidateTasks(taskId?: string) {
   if (taskId) revalidatePath(`/tasks/${taskId}`);
 }
 
+type Supabase = Awaited<ReturnType<typeof requireUser>>["supabase"];
+
+// ה-FK לא בודק בעלות, לכן מוודאים דרך RLS שהתבנית שייכת למשתמשת. אחרת: null.
+async function ownTemplateId(supabase: Supabase, raw: string | undefined): Promise<string | null> {
+  const id = idSchema.safeParse(raw);
+  if (!id.success) return null;
+  const { data } = await supabase.from("task_templates").select("id").eq("id", id.data).maybeSingle();
+  return data?.id ?? null;
+}
+
 export async function saveTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { supabase } = await requireUser();
   const raw = formToObject(formData);
@@ -31,11 +41,11 @@ export async function saveTask(_prev: ActionState, formData: FormData): Promise<
     if (error) return { error: dbErrorMessage(error) };
     taskId = id.data;
   } else {
-    const templateId = raw.template_id ? idSchema.safeParse(raw.template_id) : null;
+    const templateId = await ownTemplateId(supabase, raw.template_id);
     // owner_id ו-created_by מתמלאים ב-DB מ-auth.uid()
     const { data, error } = await supabase
       .from("tasks")
-      .insert({ ...parsed.data, template_id: templateId?.success ? templateId.data : null })
+      .insert({ ...parsed.data, template_id: templateId })
       .select("id")
       .single();
     if (error) return { error: dbErrorMessage(error) };

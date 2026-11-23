@@ -34,6 +34,9 @@ export type TaskFormValues = {
   estimate_minutes: number | null;
   assignee_freelancer_id: string | null;
   freelancer_cost: number | null;
+  // ביצירה מתבנית בלבד
+  template_id?: string | null;
+  checklist?: string[];
 };
 
 type Option = { id: string; name: string };
@@ -57,6 +60,7 @@ export function TaskForm({
   return (
     <form action={action} className="grid max-w-2xl gap-5">
       {task.id && <input type="hidden" name="id" value={task.id} />}
+      {isNew && task.template_id && <input type="hidden" name="template_id" value={task.template_id} />}
 
       <Field id="title" label="כותרת" error={fe.title} required>
         <Input name="title" defaultValue={task.title} required maxLength={300} autoFocus={isNew} />
@@ -160,7 +164,12 @@ export function TaskForm({
 
       {isNew && (
         <Field id="checklist" label="תתי־משימות (שורה לכל אחת)">
-          <Textarea name="checklist" rows={4} placeholder={"איסוף חומרים\nכתיבה\nאישור לקוח"} />
+          <Textarea
+            name="checklist"
+            rows={Math.max(4, Math.min(task.checklist?.length ?? 0, 10))}
+            placeholder={"איסוף חומרים\nכתיבה\nאישור לקוח"}
+            defaultValue={task.checklist?.join("\n") ?? ""}
+          />
         </Field>
       )}
 
