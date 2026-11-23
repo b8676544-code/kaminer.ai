@@ -349,7 +349,48 @@ isOneToOne: false
                 }
           }
           Functions: {
-            [_ in never]: never
+            "start_timer":
+{ Args: { "p_task_id": string }; Returns: {
+              "created_at": string,
+"duration_minutes": number | null,
+"ended_at": string | null,
+"id": string,
+"is_billable": boolean,
+"is_manual": boolean,
+"meeting_id": string | null,
+"note": string | null,
+"started_at": string,
+"task_id": string,
+"updated_at": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "time_entries"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"stop_timer":
+{ Args: { "p_ended_at"?: string }; Returns: {
+              "created_at": string,
+"duration_minutes": number | null,
+"ended_at": string | null,
+"id": string,
+"is_billable": boolean,
+"is_manual": boolean,
+"meeting_id": string | null,
+"note": string | null,
+"started_at": string,
+"task_id": string,
+"updated_at": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "time_entries"
+        isOneToOne: true
+        isSetofReturn: false
+      } }
           }
           Enums: {
             "client_status": "active"|"archived","task_category": "marketing"|"business"|"clients"|"personal","task_priority": "low"|"normal"|"urgent","task_status": "todo"|"in_progress"|"waiting_client"|"done","user_role": "owner"|"freelancer"

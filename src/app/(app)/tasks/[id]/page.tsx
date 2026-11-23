@@ -12,6 +12,9 @@ import { DeleteTaskButton } from "@/features/tasks/delete-task-button";
 import { NoteForm } from "@/features/tasks/note-form";
 import { getTask } from "@/features/tasks/queries";
 import { StatusSwitcher } from "@/features/tasks/status-switcher";
+import { getRunningTimer } from "@/features/time/queries";
+import { TimeEntriesList } from "@/features/time/time-entries-list";
+import { TimerButton } from "@/features/time/timer-button";
 import { cn } from "@/lib/utils";
 
 export const metadata = { title: "משימה — kaminer.ai" };
@@ -27,7 +30,7 @@ export default function TaskPage({ params }: PageProps<"/tasks/[id]">) {
 async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const details = await getTask(id);
+  const [details, running] = await Promise.all([getTask(id), getRunningTimer()]);
   if (!details) notFound();
   const { task, checklist, notes, actualMinutes, timeEntries } = details;
   const overdue = isOverdue(task.due_date, task.status, todayInJerusalem());
@@ -147,21 +150,12 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
               <CardTitle className="text-base">זמן</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
+              <TimerButton
+                task={{ id: task.id, title: task.title, status: task.status }}
+                serverRunning={running}
+              />
               <TimeProgress estimate={task.estimate_minutes} actual={actualMinutes} />
-              {timeEntries.length > 0 && (
-                <ul className="divide-y text-sm">
-                  {timeEntries.map((e) => (
-                    <li key={e.id} className="flex justify-between py-1.5">
-                      <span>
-                        {formatDate(e.started_at)}
-                        {e.is_manual && <span className="text-muted-foreground"> · ידני</span>}
-                      </span>
-                      <span className="font-medium">{e.ended_at ? formatMinutes(e.duration_minutes) : "רץ…"}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="text-muted-foreground text-xs">שעון והזנה ידנית יתווספו בפיצ&apos;ר השעון.</p>
+              <TimeEntriesList taskId={task.id} entries={timeEntries} />
             </CardContent>
           </Card>
         </div>

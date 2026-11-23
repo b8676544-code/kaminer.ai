@@ -6,6 +6,8 @@ export type ActionState = {
   error?: string;
   fieldErrors?: Record<string, string>;
   id?: string;
+  // ערכי הטופס שנשלחו, להחזרה לשדות אחרי שגיאה (React 19 מאפס את הטופס)
+  values?: Record<string, string>;
 };
 
 // שדה טקסט אופציונלי: מחרוזת ריקה הופכת ל-null

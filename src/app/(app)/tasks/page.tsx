@@ -12,6 +12,8 @@ import { KanbanBoard } from "@/features/tasks/kanban-board";
 import { listTasks, type TaskListItem } from "@/features/tasks/queries";
 import { taskFiltersSchema, type TaskFilters } from "@/features/tasks/schemas";
 import { TaskFiltersBar } from "@/features/tasks/task-filters";
+import { getRunningTimer, type RunningTimer } from "@/features/time/queries";
+import { TimerButton } from "@/features/time/timer-button";
 import { cn } from "@/lib/utils";
 
 export const metadata = { title: "משימות — kaminer.ai" };
@@ -57,11 +59,12 @@ async function TasksView({ searchParams }: Pick<PageProps<"/tasks">, "searchPara
   });
   const view = filters.view ?? "list";
 
-  const [tasks, clients, freelancers] = await Promise.all([
+  const [tasks, clients, freelancers, running] = await Promise.all([
     // בקנבן הסטטוס הוא העמודות, ולכן לא מסננים לפיו
     listTasks(view === "board" ? { ...filters, status: undefined } : filters),
     listActiveClientOptions(),
     listActiveFreelancerOptions(),
+    getRunningTimer(),
   ]);
   const today = todayInJerusalem();
 
@@ -101,13 +104,13 @@ async function TasksView({ searchParams }: Pick<PageProps<"/tasks">, "searchPara
       {view === "board" ? (
         <KanbanBoard tasks={tasks} today={today} />
       ) : (
-        <TasksTable tasks={tasks} today={today} />
+        <TasksTable tasks={tasks} today={today} running={running} />
       )}
     </div>
   );
 }
 
-function TasksTable({ tasks, today }: { tasks: TaskListItem[]; today: string }) {
+function TasksTable({ tasks, today, running }: { tasks: TaskListItem[]; today: string; running: RunningTimer | null }) {
   if (tasks.length === 0) {
     return (
       <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
@@ -120,6 +123,9 @@ function TasksTable({ tasks, today }: { tasks: TaskListItem[]; today: string }) 
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10">
+              <span className="sr-only">שעון</span>
+            </TableHead>
             <TableHead>משימה</TableHead>
             <TableHead>קטגוריה</TableHead>
             <TableHead>לקוח</TableHead>
@@ -134,6 +140,11 @@ function TasksTable({ tasks, today }: { tasks: TaskListItem[]; today: string }) 
             const overdue = isOverdue(t.due_date, t.status, today);
             return (
               <TableRow key={t.id}>
+                <TableCell>
+                  {(t.status !== "done" || running?.taskId === t.id) && (
+                    <TimerButton task={{ id: t.id, title: t.title, status: t.status }} serverRunning={running} compact />
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <Link href={`/tasks/${t.id}`} className="hover:underline">

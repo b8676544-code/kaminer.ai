@@ -17,6 +17,7 @@ const FEATURE_NOTES = {
   catalog: "קטלוג",
   calendar: "יומן",
   meetings: "יומן",
+  time: "שעון",
   timer: "שעון",
   "time-entries": "שעון",
   google: "Google",
