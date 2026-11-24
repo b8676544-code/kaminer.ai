@@ -21,14 +21,22 @@ tags:
 
 <!-- auto:start -->
 ## קבצים (מתעדכן אוטומטית)
-_עודכן: 23.11.2026 · 6 קבצים. לא לערוך ידנית בין הסימונים._
+_עודכן: 24.11.2026 · 14 קבצים. לא לערוך ידנית בין הסימונים._
 
 | קובץ | מה יש בו |
 |---|---|
-| `src/lib/google/calendar.ts` | GoogleApiError, CalendarOption, listCalendars, listEvents, insertEvent, patchEvent, deleteEvent |
+| `src/features/google/actions.ts` | selectCalendar, disconnectGoogle, syncNow |
+| `src/features/google/auto-sync.tsx` | GoogleAutoSync |
+| `src/features/google/google-forms.tsx` | SelectCalendarForm, DisconnectButton |
+| `src/features/google/google-settings-card.tsx` | GoogleSettingsCard, SyncErrorBanner |
+| `src/features/google/queries.ts` | getGoogleConnection, GoogleConnection, googleConfigured, listGoogleCalendars |
+| `src/features/google/sync-health-banner.tsx` | SyncHealthBanner |
+| `src/features/google/sync-now-button.tsx` | SyncNowButton |
+| `src/lib/google/calendar.ts` | GoogleApiError, CalendarOption, listCalendars, listEvents, NotifyOpts, insertEvent, patchEvent, deleteEvent |
 | `src/lib/google/crypto.ts` | parseEncryptionKey, getEncryptionKey, encryptToken, decryptToken |
-| `src/lib/google/mapping.ts` | UNTITLED, GoogleEvent, MeetingFromGoogle, SyncedMeetingFields, GoogleEventBody, googleEventToMeeting, meetingToGoogleEvent, meetingIdToEventId, resolveConflict |
+| `src/lib/google/mapping.ts` | UNTITLED, GoogleEvent, MeetingFromGoogle, SyncedMeetingFields, GoogleEventBody, googleEventToMeeting, managesAttendees, meetingToGoogleEvent, meetingIdToEventId, resolveConflict |
 | `src/lib/google/oauth-state.ts` | OAUTH_STATE_COOKIE, createOAuthState, isValidOAuthState |
 | `src/lib/google/oauth.ts` | GOOGLE_SCOPES, GoogleAuthRevokedError, isGoogleConfigured, googleRedirectUri, buildAuthUrl, exchangeCode, refreshAccessToken, revokeToken, emailFromIdToken |
+| `src/lib/google/sync-health.ts` | NORMAL_THROTTLE_MS, BACKOFF_THROTTLE_MS, ALERT_AFTER_FAILURES, SyncTrigger, throttleMs, HealthState, nextHealth |
 | `src/lib/google/sync.ts` | SyncResult, getAccessTokenForUser, syncCalendar |
 <!-- auto:end -->

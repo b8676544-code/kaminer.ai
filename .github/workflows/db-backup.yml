@@ -1,0 +1,73 @@
+# E2: גיבוי לילי של ה-DB המנוהל (Supabase) כקובץ מוצפן, נשמר 30 יום כ-artifact.
+# מופעל אחרי E3, כשמוסיפים ב-GitHub (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL        — מחרוזת החיבור של ה-Session pooler (פורט 5432). לא החיבור הישיר:
+#                            הוא IPv6 בלבד, והשרתים של GitHub לא מגיעים אליו
+#   BACKUP_PASSPHRASE      — סיסמה להצפנת הגיבוי. לשמור גם מחוץ ל-GitHub, בלעדיה אי אפשר לשחזר
+# בלי הסודות: ההרצה מדלגת ולא נכשלת. שחזור: docs/PRD.md §9.5
+name: DB backup
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # 00:30 UTC = 02:30–03:30 שעון ישראל
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # SEC-3: הסודות מועברים רק לשלבים שצריכים אותם, וה-actions נעולים ל-SHA מלא
+    steps:
+      - name: Check secrets
+        id: check
+        env:
+          HAS_DB_URL: ${{ secrets.SUPABASE_DB_URL != '' }}
+          HAS_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE != '' }}
+        run: |
+          if [ "$HAS_DB_URL" != "true" ] || [ "$HAS_PASSPHRASE" != "true" ]; then
+            echo "::notice::SUPABASE_DB_URL / BACKUP_PASSPHRASE not set yet, skipping backup"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
+        if: steps.check.outputs.ready == 'true'
+        with:
+          version: 3.2.0 # כמו המקומית. לעדכן ידנית אחרי בדיקה
+
+      - name: Dump roles, schema and data
+        if: steps.check.outputs.ready == 'true'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --data-only --use-copy
+
+      - name: Compress and encrypt
+        if: steps.check.outputs.ready == 'true'
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          STAMP=$(date -u +%Y-%m-%d)
+          tar -czf "db-$STAMP.tar.gz" backup
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+            --symmetric --cipher-algo AES256 -o "db-$STAMP.tar.gz.gpg" "db-$STAMP.tar.gz"
+          rm -rf backup "db-$STAMP.tar.gz"
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.check.outputs.ready == 'true'
+        with:
+          name: db-backup-${{ env.STAMP }}
+          path: db-*.tar.gz.gpg
+          retention-days: 30
+          if-no-files-found: error

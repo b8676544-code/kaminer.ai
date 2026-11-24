@@ -60,7 +60,7 @@ async function ClientsList({ searchParams }: Pick<PageProps<"/clients">, "search
           {status === "active" ? "אין עדיין לקוחות. אפשר להוסיף לקוח בכפתור למעלה." : "אין לקוחות בארכיון."}
         </p>
       ) : (
-        <div className="rounded-lg border">
+        <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>

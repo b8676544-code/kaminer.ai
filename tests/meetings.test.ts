@@ -219,6 +219,11 @@ describe("הזמנה במייל", () => {
     expect(r.data?.invite_emails).toEqual(["levi@example.com", "cohen@example.com"]);
   });
 
+  it("כתובת שמתחילה ב-s לא נחתכת, ורווח מפריד בין כתובות", () => {
+    const r = meetingSchema.safeParse({ ...base, invite_emails: "shimon@example.com sara@example.com,  yossi@x.co.il" });
+    expect(r.data?.invite_emails).toEqual(["shimon@example.com", "sara@example.com", "yossi@x.co.il"]);
+  });
+
   it("כתובת לא תקינה: שגיאה בשדה", () => {
     const r = meetingSchema.safeParse({ ...base, invite_emails: "not-an-email" });
     expect(r.success).toBe(false);

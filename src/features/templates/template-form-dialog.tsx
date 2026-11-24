@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -60,6 +61,7 @@ export function TemplateFormDialog({
 
 function TemplateForm({ template, onDone }: { template?: TemplateFormValues; onDone: () => void }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(saveTemplate, {});
+  const guardSubmit = useSubmitGuard(pending);
   const fe = state.fieldErrors ?? {};
   // אחרי שגיאה React מאפס את הטופס, לכן מחזירים את מה שנשלח
   const v = state.values;
@@ -83,7 +85,7 @@ function TemplateForm({ template, onDone }: { template?: TemplateFormValues; onD
   }, [state, isEdit, onDone, router, pathname]);
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       {template?.id && <input type="hidden" name="id" value={template.id} />}
       <Field id="tpl-title" label="כותרת" error={fe.title} required>
         <Input name="title" defaultValue={v?.title ?? template?.title} required maxLength={300} autoFocus />

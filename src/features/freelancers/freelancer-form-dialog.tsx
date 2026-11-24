@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,9 @@ export function FreelancerFormDialog({
 
 function FreelancerForm({ freelancer, onDone }: { freelancer?: FreelancerFormValues; onDone: () => void }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(saveFreelancer, {});
+  const guardSubmit = useSubmitGuard(pending);
   const fe = state.fieldErrors ?? {};
+  const v = state.values;
 
   useEffect(() => {
     if (state.ok) {
@@ -63,14 +66,14 @@ function FreelancerForm({ freelancer, onDone }: { freelancer?: FreelancerFormVal
   }, [state, freelancer, onDone]);
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       {freelancer && <input type="hidden" name="id" value={freelancer.id} />}
       <Field id="full_name" label="שם מלא" error={fe.full_name} required>
-        <Input name="full_name" defaultValue={freelancer?.full_name} required maxLength={200} autoFocus />
+        <Input name="full_name" defaultValue={v?.full_name ?? freelancer?.full_name} required maxLength={200} autoFocus />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="specialty" label="תחום" error={fe.specialty}>
-          <Input name="specialty" placeholder="למשל עיצוב גרפי" defaultValue={freelancer?.specialty ?? ""} />
+          <Input name="specialty" placeholder="למשל עיצוב גרפי" defaultValue={v?.specialty ?? freelancer?.specialty ?? ""} />
         </Field>
         <Field id="default_hourly_cost" label="עלות לשעה (₪)" error={fe.default_hourly_cost}>
           <Input
@@ -79,18 +82,18 @@ function FreelancerForm({ freelancer, onDone }: { freelancer?: FreelancerFormVal
             min={0}
             step="0.01"
             dir="ltr"
-            defaultValue={freelancer?.default_hourly_cost ?? ""}
+            defaultValue={v?.default_hourly_cost ?? freelancer?.default_hourly_cost ?? ""}
           />
         </Field>
         <Field id="phone" label="טלפון" error={fe.phone}>
-          <Input name="phone" type="tel" dir="ltr" defaultValue={freelancer?.phone ?? ""} />
+          <Input name="phone" type="tel" dir="ltr" defaultValue={v?.phone ?? freelancer?.phone ?? ""} />
         </Field>
         <Field id="email" label="מייל" error={fe.email}>
-          <Input name="email" type="email" dir="ltr" defaultValue={freelancer?.email ?? ""} />
+          <Input name="email" type="email" dir="ltr" defaultValue={v?.email ?? freelancer?.email ?? ""} />
         </Field>
       </div>
       <Field id="notes" label="הערות" error={fe.notes}>
-        <Textarea name="notes" defaultValue={freelancer?.notes ?? ""} />
+        <Textarea name="notes" defaultValue={v?.notes ?? freelancer?.notes ?? ""} />
       </Field>
       {state.error && (
         <p role="alert" className="text-destructive text-sm">

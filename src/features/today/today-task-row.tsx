@@ -62,14 +62,17 @@ export function TodayTaskRow({
 
   return (
     <li className={cn("flex items-center gap-2 py-2 text-sm", done && "opacity-50")}>
-      <input
-        type="checkbox"
-        className="accent-primary size-4 shrink-0"
-        checked={done}
-        disabled={done || pending}
-        onChange={complete}
-        aria-label={`סימון "${task.title}" כהושלמה`}
-      />
+      {/* QA-8: אזור לחיצה גדול סביב התיבה, בלי לשנות את הפריסה */}
+      <label className="-mx-3.5 -my-2.5 flex h-9 w-11 shrink-0 cursor-pointer items-center justify-center">
+        <input
+          type="checkbox"
+          className="accent-primary size-4 shrink-0"
+          checked={done}
+          disabled={done || pending}
+          onChange={complete}
+          aria-label={`סימון "${task.title}" כהושלמה`}
+        />
+      </label>
       <div className="min-w-0 flex-1">
         <Link href={`/tasks/${task.id}`} className={cn("font-medium hover:underline", done && "line-through")}>
           {task.title}

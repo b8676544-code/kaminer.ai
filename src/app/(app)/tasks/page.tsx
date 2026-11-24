@@ -124,7 +124,7 @@ function TasksTable({ tasks, today, running }: { tasks: TaskListItem[]; today: s
     );
   }
   return (
-    <div className="rounded-lg border">
+    <div className="overflow-x-auto rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>

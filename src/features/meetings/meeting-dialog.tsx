@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import { CheckIcon, ClockIcon, MailIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -90,7 +91,7 @@ export function MeetingDialog({
 
 function splitEmails(text: string): string[] {
   return text
-    .split(/[s,;]+/)
+    .split(/[\s,;]+/)
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 }
@@ -192,6 +193,7 @@ function MeetingForm({
   onLogWork: () => void;
 }) {
   const [result, action, pending] = useActionState<ActionState, FormData>(saveMeeting, {});
+  const guardSubmit = useSubmitGuard(pending);
   const [deleting, startDelete] = useTransition();
   const meeting = state.kind === "edit" ? state.meeting : null;
   const fe = result.fieldErrors ?? {};
@@ -235,7 +237,7 @@ function MeetingForm({
     state.meeting.loggedCount === 0;
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       {meeting && <input type="hidden" name="id" value={meeting.id} />}
       <input type="hidden" name="is_personal" value={String(isPersonal)} />
       <div role="radiogroup" aria-label="סוג הפגישה" className="bg-muted flex w-fit gap-1 rounded-md p-1 text-sm">
@@ -385,6 +387,7 @@ function LogWorkForm({
   onDone: () => void;
 }) {
   const [result, action, pending] = useActionState<ActionState, FormData>(logMeetingAsWork, {});
+  const guardSubmit = useSubmitGuard(pending);
   const fe = result.fieldErrors ?? {};
   const v = result.values;
   // מסננים ללקוח של הפגישה, אלא אם אין לו משימות פתוחות
@@ -401,7 +404,7 @@ function LogWorkForm({
   }, [result, onDone]);
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       <input type="hidden" name="meeting_id" value={meeting.id} />
       <Field id="log-task" label="משימה" error={fe.task_id} required>
         <NativeSelect name="task_id" defaultValue={v?.task_id ?? meeting.task_id ?? ""} required>

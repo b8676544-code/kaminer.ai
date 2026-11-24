@@ -63,7 +63,7 @@ export function HeaderTimer({ serverRunning }: { serverRunning: RunningTimer | n
       <Button
         size="icon"
         variant="ghost"
-        className="size-7"
+        className="relative size-7 after:absolute after:-inset-2 after:content-['']" // QA-8: אזור לחיצה של 44px
         onClick={() => requestStop(running)}
         disabled={pending || running.id === "optimistic"}
         aria-label="עצירת השעון"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -94,6 +95,7 @@ function ProjectForm({
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<ActionState, FormData>(saveProject, {});
+  const guardSubmit = useSubmitGuard(pending);
   const fe = state.fieldErrors ?? {};
   const v = state.values;
   const [pickedClient, setPickedClient] = useState(v?.client_id ?? "");
@@ -116,7 +118,7 @@ function ProjectForm({
   };
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       {clientId ? (
         <input type="hidden" name="client_id" value={clientId} />
       ) : (

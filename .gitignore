@@ -50,3 +50,7 @@ Vault/.trash/
 
 # next.js generated
 next-env.d.ts
+
+# גיבויים מוצפנים
+*.kmb
+*.dump

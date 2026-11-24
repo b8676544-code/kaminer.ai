@@ -32,7 +32,7 @@ export async function saveTask(_prev: ActionState, formData: FormData): Promise<
   const { supabase } = await requireUser();
   const raw = formToObject(formData);
   const parsed = taskSchema.safeParse(raw);
-  if (!parsed.success) return zodToState(parsed.error);
+  if (!parsed.success) return { ...zodToState(parsed.error), values: raw };
 
   // הפרויקט חייב להיות של המשתמשת (RLS) ושל אותו לקוח. הטריגר ב-DB בודק את זה גם, כאן ההודעה ידידותית.
   if (parsed.data.project_id) {
@@ -45,6 +45,7 @@ export async function saveTask(_prev: ActionState, formData: FormData): Promise<
       return {
         error: "יש לתקן את השדות המסומנים",
         fieldErrors: { project_id: "הפרויקט לא נמצא או שאינו של הלקוח שנבחר" },
+        values: raw,
       };
     }
   }
@@ -55,7 +56,7 @@ export async function saveTask(_prev: ActionState, formData: FormData): Promise<
   let taskId: string;
   if (id) {
     const { error } = await supabase.from("tasks").update(parsed.data).eq("id", id.data);
-    if (error) return { error: dbErrorMessage(error) };
+    if (error) return { error: dbErrorMessage(error), values: raw };
     taskId = id.data;
   } else {
     const templateId = await ownTemplateId(supabase, raw.template_id);
@@ -65,7 +66,7 @@ export async function saveTask(_prev: ActionState, formData: FormData): Promise<
       .insert({ ...parsed.data, template_id: templateId })
       .select("id")
       .single();
-    if (error) return { error: dbErrorMessage(error) };
+    if (error) return { error: dbErrorMessage(error), values: raw };
     taskId = data.id;
 
     const items = parseChecklistLines(raw.checklist);

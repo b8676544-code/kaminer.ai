@@ -6,14 +6,14 @@ import { timeEntrySchema } from "@/features/time/schemas";
 
 const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "שעה לא תקינה");
 
-// מוזמנים במייל: מחרוזת כתובות מופרדות בפסיק. בלי השדה בטופס: לא משנים (undefined)
+// מוזמנים במייל: מחרוזת כתובות מופרדות בפסיק, נקודה־פסיק או רווח. בלי השדה בטופס: לא משנים (undefined)
 const inviteEmails = z.preprocess(
   (v) =>
     typeof v === "string"
       ? [
           ...new Set(
             v
-              .split(/[s,;]+/)
+              .split(/[\s,;]+/)
               .map((e) => e.trim().toLowerCase())
               .filter(Boolean),
           ),

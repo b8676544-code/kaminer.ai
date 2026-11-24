@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -109,6 +110,7 @@ export function ClientContacts({ clientId, contacts }: { clientId: string; conta
 
 function ContactForm({ clientId, contact, onDone }: { clientId: string; contact?: ContactItem; onDone: () => void }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(saveContact, {});
+  const guardSubmit = useSubmitGuard(pending);
   const fe = state.fieldErrors ?? {};
 
   useEffect(() => {
@@ -119,7 +121,7 @@ function ContactForm({ clientId, contact, onDone }: { clientId: string; contact?
   }, [state, contact, onDone]);
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       <input type="hidden" name="client_id" value={clientId} />
       {contact && <input type="hidden" name="id" value={contact.id} />}
       <div className="grid gap-4 sm:grid-cols-2">

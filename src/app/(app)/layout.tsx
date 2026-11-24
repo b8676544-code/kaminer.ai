@@ -7,12 +7,20 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
 import { GoogleAutoSync } from "@/features/google/auto-sync";
+import { SyncHealthBanner } from "@/features/google/sync-health-banner";
 import { HeaderTimerSlot } from "@/features/time/header-timer-slot";
 import { TimerProvider } from "@/features/time/timer-provider";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <TimerProvider>
+      {/* LAW-9: מקלדת וקורא מסך: דילוג על הניווט ישר לתוכן */}
+      <a
+        href="#main"
+        className="bg-background sr-only z-50 rounded-md border px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+      >
+        דלג לתוכן
+      </a>
       <GoogleAutoSync />
       <div className="flex min-h-screen">
         {/* סרגל צד: בצד ימין (תחילת השורה ב-RTL) */}
@@ -48,7 +56,11 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-6">{children}</main>
+          <Suspense fallback={null}>
+            <SyncHealthBanner />
+          </Suspense>
+
+          <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 p-4 outline-none md:p-6">{children}</main>
         </div>
       </div>
     </TimerProvider>

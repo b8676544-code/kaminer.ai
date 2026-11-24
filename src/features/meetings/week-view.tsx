@@ -86,6 +86,7 @@ export function WeekView({
                     <button
                       key={m.id}
                       type="button"
+                      title={m.title}
                       onClick={() => onOpen(m)}
                       className={cn(meetingTone(m).chip, "truncate rounded px-1.5 py-0.5 text-start text-xs")}
                     >
@@ -151,6 +152,7 @@ export function WeekView({
                   <button
                     key={m.id}
                     type="button"
+                    title={`${m.title} · ${timeRange(m.starts_at, m.ends_at)}`}
                     aria-label={`${m.title}, ${timeRange(m.starts_at, m.ends_at)}${m.clients ? `, ${m.clients.name}` : ""}${m.is_personal ? ", אישית" : ""}${m.loggedCount > 0 ? ", נרשם כזמן עבודה" : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();

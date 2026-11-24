@@ -21,7 +21,7 @@ function revalidateMeetings() {
 // אחרי שמירה או מחיקה: שולחים ל-Google ברקע, בלי לעכב את התשובה לטופס.
 // אם אין חיבור, syncCalendar חוזרת מיד. force עוקף את ה-throttle אבל לא את הנעילה.
 function pushToGoogle(userId: string) {
-  after(() => syncCalendar(userId, { force: true }).catch((e) => console.error("[google-sync]", e)));
+  after(() => syncCalendar(userId, { force: true, trigger: "after-save" }).catch((e) => console.error("[google-sync]", e)));
 }
 
 // ה-RLS של meetings בודק רק את owner_id. מוודאים שהלקוח והמשימה גלויים למשתמשת

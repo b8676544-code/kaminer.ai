@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ export function TimeEntryFormDialog({
 
 function TimeEntryForm({ taskId, entry, onDone }: { taskId: string; entry?: TimeEntryValues; onDone: () => void }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(saveTimeEntry, {});
+  const guardSubmit = useSubmitGuard(pending);
   const fe = state.fieldErrors ?? {};
   const start = entry ? isoToJerusalem(entry.started_at) : null;
   const end = entry ? isoToJerusalem(entry.ended_at) : null;
@@ -67,7 +69,7 @@ function TimeEntryForm({ taskId, entry, onDone }: { taskId: string; entry?: Time
   }, [state, entry, onDone]);
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={guardSubmit} className="grid gap-4">
       <input type="hidden" name="task_id" value={taskId} />
       {entry && <input type="hidden" name="id" value={entry.id} />}
       <Field id="entry-date" label="תאריך" error={fe.date} required>

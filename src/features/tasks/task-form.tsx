@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useSubmitGuard } from "@/features/shared/use-submit-guard";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ export function TaskForm({
   projects: ProjectOption[];
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(saveTask, {});
+  const guardSubmit = useSubmitGuard(pending);
   const [category, setCategory] = useState<TaskCategory>(task.category);
   const [freelancerId, setFreelancerId] = useState(task.assignee_freelancer_id ?? "");
   const [clientId, setClientId] = useState(task.client_id ?? "");
@@ -114,6 +116,17 @@ export function TaskForm({
   const [billedSeparately, setBilledSeparately] = useState(task.billed_separately);
   const [freelancerInProject, setFreelancerInProject] = useState(task.freelancer_cost_in_project);
   const fe = state.fieldErrors ?? {};
+  // QA-4: אחרי שגיאה React מאפס את הטופס, ולכן השדות מקבלים את מה שנשלח ולא את הערך המקורי
+  const v = state.values;
+  const sent = (name: string, fallback: string | number | null | undefined) => v?.[name] ?? fallback ?? "";
+  const sentNumber = (name: string, fallback: number | null) =>
+    v?.[name] === undefined ? fallback : v[name] === "" ? null : Number(v[name]);
+  const pricing: Pricing = {
+    pricing_type:
+      v?.pricing_type === undefined ? task.pricing_type : ((v.pricing_type || null) as Pricing["pricing_type"]),
+    hourly_rate: sentNumber("hourly_rate", task.hourly_rate),
+    final_price: sentNumber("final_price", task.final_price),
+  };
   const isPersonal = category === "personal";
   const isNew = !task.id;
   // פרויקט שהלקוח שלו לא ברשימה (למשל בארכיון) לא מוצע, חוץ מהפרויקט שכבר משויך
@@ -129,12 +142,12 @@ export function TaskForm({
   const sharedToOthers = project?.shares.filter((s) => s.task_id !== task.id).reduce((sum, s) => sum + s.share, 0) ?? 0;
 
   return (
-    <form action={action} className="grid max-w-2xl gap-5">
+    <form action={action} onSubmit={guardSubmit} className="grid max-w-2xl gap-5">
       {task.id && <input type="hidden" name="id" value={task.id} />}
       {isNew && task.template_id && <input type="hidden" name="template_id" value={task.template_id} />}
 
       <Field id="title" label="כותרת" error={fe.title} required>
-        <Input name="title" defaultValue={task.title} required maxLength={300} autoFocus={isNew} />
+        <Input name="title" defaultValue={sent("title", task.title)} required maxLength={300} autoFocus={isNew} />
       </Field>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -194,7 +207,7 @@ export function TaskForm({
         )}
 
         <Field id="status" label="סטטוס" error={fe.status}>
-          <NativeSelect name="status" defaultValue={task.status}>
+          <NativeSelect name="status" defaultValue={sent("status", task.status)}>
             {TASK_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {STATUS_LABELS[s]}
@@ -204,7 +217,7 @@ export function TaskForm({
         </Field>
 
         <Field id="priority" label="עדיפות" error={fe.priority}>
-          <NativeSelect name="priority" defaultValue={task.priority}>
+          <NativeSelect name="priority" defaultValue={sent("priority", task.priority)}>
             {TASK_PRIORITIES.map((p) => (
               <option key={p} value={p}>
                 {PRIORITY_LABELS[p]}
@@ -214,7 +227,7 @@ export function TaskForm({
         </Field>
 
         <Field id="due_date" label="תאריך יעד" error={fe.due_date}>
-          <Input name="due_date" type="date" defaultValue={task.due_date ?? ""} />
+          <Input name="due_date" type="date" defaultValue={sent("due_date", task.due_date)} />
         </Field>
 
         <Field id="estimate_minutes" label="הערכת זמן (דקות)" error={fe.estimate_minutes}>
@@ -225,7 +238,7 @@ export function TaskForm({
             step={1}
             dir="ltr"
             placeholder="למשל 90"
-            defaultValue={task.estimate_minutes ?? ""}
+            defaultValue={sent("estimate_minutes", task.estimate_minutes)}
           />
         </Field>
 
@@ -253,7 +266,7 @@ export function TaskForm({
                   min={0}
                   step="0.01"
                   dir="ltr"
-                  defaultValue={task.freelancer_cost ?? ""}
+                  defaultValue={sent("freelancer_cost", task.freelancer_cost)}
                 />
               </Field>
             )}
@@ -286,7 +299,7 @@ export function TaskForm({
               <PricingFields
                 key={`${clientId}-separate`}
                 idPrefix="task"
-                values={{ pricing_type: task.pricing_type, hourly_rate: task.hourly_rate, final_price: task.final_price }}
+                values={pricing}
                 defaultRate={clientRate}
                 errors={fe}
               />
@@ -300,7 +313,7 @@ export function TaskForm({
                     step="0.01"
                     dir="ltr"
                     placeholder="לא חובה"
-                    defaultValue={task.project_share ?? ""}
+                    defaultValue={sent("project_share", task.project_share)}
                     className="max-w-48"
                   />
                 </Field>
@@ -317,14 +330,14 @@ export function TaskForm({
           <PricingFields
             key={clientId}
             idPrefix="task"
-            values={{ pricing_type: task.pricing_type, hourly_rate: task.hourly_rate, final_price: task.final_price }}
+            values={pricing}
             defaultRate={clientRate}
             errors={fe}
           />
         ))}
 
       <Field id="description" label="תיאור" error={fe.description}>
-        <Textarea name="description" rows={4} defaultValue={task.description ?? ""} />
+        <Textarea name="description" rows={4} defaultValue={sent("description", task.description)} />
       </Field>
 
       {isNew && (
@@ -333,7 +346,7 @@ export function TaskForm({
             name="checklist"
             rows={Math.max(4, Math.min(task.checklist?.length ?? 0, 10))}
             placeholder={"איסוף חומרים\nכתיבה\nאישור לקוח"}
-            defaultValue={task.checklist?.join("\n") ?? ""}
+            defaultValue={sent("checklist", task.checklist?.join("\n"))}
           />
         </Field>
       )}

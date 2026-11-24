@@ -13,12 +13,13 @@ import {
   type GoogleEventBody,
 } from "./mapping";
 import { GoogleAuthRevokedError, refreshAccessToken } from "./oauth";
+import { sendEmail } from "@/lib/email/send";
+import { ALERT_AFTER_FAILURES, nextHealth, throttleMs, type SyncTrigger } from "./sync-health";
 
 // מנוע הסנכרון הדו־כיווני. רץ עם service role (עוקף RLS), ולכן כל שאילתה כאן
 // מסוננת ידנית לפי owner_id / user_id. נקרא מכפתור, מה-polling בדפדפן, אחרי
 // שמירת פגישה, ובענן גם מ-cron.
 
-const THROTTLE_MS = 2 * 60_000;
 const LOCK_MS = 2 * 60_000;
 const INITIAL_DAYS_BACK = 30;
 const PUSH_BATCH = 200;
@@ -41,17 +42,27 @@ export async function getAccessTokenForUser(userId: string): Promise<string | nu
   return refreshAccessToken(decryptToken(data.refresh_token));
 }
 
-export async function syncCalendar(userId: string, opts: { force?: boolean } = {}): Promise<SyncResult> {
+export async function syncCalendar(
+  userId: string,
+  opts: { force?: boolean; trigger?: SyncTrigger } = {},
+): Promise<SyncResult> {
   const admin = createAdminClient();
   const { data: conn } = await admin
     .from("calendar_connections")
-    .select("calendar_id, calendar_selected_at, refresh_token, sync_token, last_sync_attempt_at")
+    .select(
+      "calendar_id, calendar_selected_at, refresh_token, sync_token, last_sync_attempt_at, consecutive_failures, failure_alert_sent_at",
+    )
     .eq("user_id", userId)
     .maybeSingle();
   if (!conn || !conn.calendar_selected_at) return { status: "not_connected" };
 
   const now = Date.now();
-  if (!opts.force && conn.last_sync_attempt_at && now - new Date(conn.last_sync_attempt_at).getTime() < THROTTLE_MS) {
+  // אחרי כשלים רצופים הסנכרון האוטומטי מאט (sync-health)
+  if (
+    !opts.force &&
+    conn.last_sync_attempt_at &&
+    now - new Date(conn.last_sync_attempt_at).getTime() < throttleMs(conn.consecutive_failures)
+  ) {
     return { status: "skipped" };
   }
 
@@ -66,6 +77,20 @@ export async function syncCalendar(userId: string, opts: { force?: boolean } = {
     .maybeSingle();
   if (!locked) return { status: "skipped" };
 
+  const result = await runLocked(admin, userId, conn);
+  await recordRun(admin, userId, opts.trigger ?? (opts.force ? "manual" : "background"), nowIso, result, conn);
+  return result;
+}
+
+type Connection = {
+  calendar_id: string;
+  refresh_token: string;
+  sync_token: string | null;
+  consecutive_failures: number;
+  failure_alert_sent_at: string | null;
+};
+
+async function runLocked(admin: Admin, userId: string, conn: Connection): Promise<SyncResult> {
   try {
     const accessToken = await refreshAccessToken(decryptToken(conn.refresh_token));
     const ctx = { admin, userId, accessToken, calendarId: conn.calendar_id };
@@ -102,6 +127,70 @@ export async function syncCalendar(userId: string, opts: { force?: boolean } = {
       .eq("user_id", userId);
     return { status: "error", error: message };
   }
+}
+
+const JOB_RUNS_KEEP_DAYS = 30;
+
+// לוג ההרצה (job_runs), ספירת כשלים רצופים, והתראה אחת כשמגיעים ל-3.
+// כשל ברישום לא מפיל את הסנכרון עצמו
+async function recordRun(
+  admin: Admin,
+  userId: string,
+  trigger: SyncTrigger,
+  startedAt: string,
+  result: SyncResult,
+  conn: Connection,
+) {
+  try {
+    const ok = result.status === "ok";
+    const error = result.status === "error" ? result.error : result.status === "ok" ? (result.warning ?? null) : null;
+    await admin.from("job_runs").insert({
+      user_id: userId,
+      job: "google-sync",
+      trigger,
+      started_at: startedAt,
+      status: ok ? "ok" : "error",
+      changed: result.status === "ok" ? result.changed : null,
+      error: error?.slice(0, 1000) ?? null,
+    });
+
+    const health = nextHealth(conn, ok, new Date().toISOString());
+    await admin
+      .from("calendar_connections")
+      .update({
+        consecutive_failures: health.consecutive_failures,
+        failure_alert_sent_at: health.failure_alert_sent_at,
+      })
+      .eq("user_id", userId);
+    if (health.sendAlert) await sendFailureAlert(admin, userId, error);
+
+    // שמירה ל-30 יום
+    const cutoff = new Date(Date.now() - JOB_RUNS_KEEP_DAYS * 86_400_000).toISOString();
+    await admin.from("job_runs").delete().eq("user_id", userId).lt("started_at", cutoff);
+  } catch (e) {
+    console.error("[google-sync] record run", e);
+  }
+}
+
+async function sendFailureAlert(admin: Admin, userId: string, error: string | null) {
+  const { data } = await admin.auth.admin.getUserById(userId);
+  const to = data.user?.email;
+  if (!to) return;
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  await sendEmail({
+    to,
+    subject: "kaminer.ai: הסנכרון עם Google Calendar נכשל",
+    text: [
+      `הסנכרון עם Google Calendar נכשל ${ALERT_AFTER_FAILURES} פעמים ברציפות.`,
+      error ? `השגיאה האחרונה: ${error}` : "",
+      "עד שהבעיה תיפתר, הסנכרון האוטומטי ינסה שוב כל 15 דקות. פגישות חדשות נשמרות במערכת ויישלחו ל-Google כשהסנכרון יחזור.",
+      `לפרטים ולחיבור מחדש: ${appUrl}/settings`,
+      "",
+      "ההודעה נשלחת פעם אחת לכל רצף כשלים.",
+    ]
+      .filter((line, i) => line !== "" || i > 2)
+      .join("\n"),
+  });
 }
 
 type Ctx = { admin: Admin; userId: string; accessToken: string; calendarId: string };

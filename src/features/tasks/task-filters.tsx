@@ -28,7 +28,8 @@ export function TaskFiltersBar({
   const submit = (e: React.ChangeEvent<HTMLSelectElement>) => e.currentTarget.form?.requestSubmit();
 
   return (
-    <Form action="/tasks" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
+    // QA-3: key מחדש את הטופס כשה-URL משתנה (חזרה אחורה, ניקוי), כדי שהבחירות לא יישארו ישנות
+    <Form key={JSON.stringify(filters)} action="/tasks" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
       {filters.view === "board" && <input type="hidden" name="view" value="board" />}
       <div className="grid gap-1.5">
         <Label htmlFor="f-status">סטטוס</Label>
