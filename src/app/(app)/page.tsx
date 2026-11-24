@@ -10,7 +10,7 @@ import type { MeetingItem } from "@/features/meetings/queries";
 import { formatDate, formatMinutes } from "@/features/shared/format";
 import { HeaderTimer } from "@/features/time/header-timer";
 import { getRunningTimer, type RunningTimer } from "@/features/time/queries";
-import { getTodayData, type TodayTask } from "@/features/today/queries";
+import { getTodayData, type TodayData, type TodayTask } from "@/features/today/queries";
 import { TodayTaskRow } from "@/features/today/today-task-row";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,7 @@ export default function TodayPage() {
 async function Today() {
   const [data, running] = await Promise.all([getTodayData(), getRunningTimer()]);
   const { today, tomorrow, nowIso, tasks, meetings, minutes } = data;
+  const work = tasks.business;
   const todayMeetings = meetingsOnDay(meetings, today);
   const tomorrowMeetings = meetingsOnDay(meetings, tomorrow);
 
@@ -63,7 +64,7 @@ async function Today() {
         <div className="grid content-start gap-6 lg:col-span-2">
           <TaskCard
             title="לביצוע היום"
-            tasks={tasks.dueToday}
+            tasks={work.dueToday}
             today={today}
             running={running}
             empty="אין משימות להיום 🎉"
@@ -78,17 +79,24 @@ async function Today() {
           />
           <TaskCard
             title="בתהליך"
-            tasks={tasks.inProgress}
+            tasks={work.inProgress}
             today={today}
             running={running}
             empty="אין משימות נוספות בתהליך."
           />
           <TaskCard
             title="ממתינות ללקוח"
-            tasks={tasks.waiting}
+            tasks={work.waiting}
             today={today}
             running={running}
             empty="אין משימות שממתינות ללקוח."
+          />
+          <TaskCard
+            title="ללא תאריך"
+            tasks={work.undated}
+            today={today}
+            running={running}
+            empty="אין משימות פתוחות בלי תאריך יעד."
           />
         </div>
 
@@ -110,10 +118,10 @@ async function Today() {
               <CardTitle className="text-base">השבוע הקרוב</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-              {tasks.week.length === 0 ? (
+              {work.week.length === 0 ? (
                 <p className="text-muted-foreground text-sm">אין משימות עם תאריך יעד בשבוע הקרוב.</p>
               ) : (
-                tasks.week.map(({ day, tasks: dayTasks }) => (
+                work.week.map(({ day, tasks: dayTasks }) => (
                   <div key={day}>
                     <h3 className="text-muted-foreground text-sm font-medium">
                       {day === tomorrow ? "מחר" : `יום ${weekdayLabel(day)}`} · {dayMonth(day)}
@@ -134,7 +142,60 @@ async function Today() {
           </Card>
         </div>
       </div>
+
+      <PersonalCard groups={tasks.personal} today={today} tomorrow={tomorrow} running={running} />
     </div>
+  );
+}
+
+// משימות אישיות: כרטיס אחד בתחתית, מודגש בענבר, עם אותה חלוקה כמו העסקיות
+function PersonalCard({
+  groups,
+  today,
+  tomorrow,
+  running,
+}: {
+  groups: TodayData["tasks"]["personal"];
+  today: string;
+  tomorrow: string;
+  running: RunningTimer | null;
+}) {
+  const sections: { title: string; tasks: TodayTask[] }[] = [
+    { title: "להיום ובאיחור", tasks: groups.dueToday },
+    { title: "בתהליך", tasks: groups.inProgress },
+    { title: "ממתינות", tasks: groups.waiting },
+    ...groups.week.map(({ day, tasks }) => ({
+      title: `${day === tomorrow ? "מחר" : `יום ${weekdayLabel(day)}`} · ${dayMonth(day)}`,
+      tasks,
+    })),
+    { title: "ללא תאריך", tasks: groups.undated },
+  ].filter((s) => s.tasks.length > 0);
+  const total = sections.reduce((n, s) => n + s.tasks.length, 0);
+
+  return (
+    <Card className="border-s-4 border-amber-400 bg-amber-50/70 dark:border-amber-500/70 dark:bg-amber-950/20">
+      <CardHeader>
+        <CardTitle className="text-base text-amber-900 dark:text-amber-200">אישיות ({total})</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {total === 0 ? (
+          <p className="text-muted-foreground text-sm">אין משימות אישיות פתוחות.</p>
+        ) : (
+          <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+            {sections.map((s) => (
+              <div key={s.title}>
+                <h3 className="text-sm font-medium text-amber-900/80 dark:text-amber-200/80">{s.title}</h3>
+                <ul className="divide-y divide-amber-200/70 dark:divide-amber-800/40">
+                  {s.tasks.map((t) => (
+                    <TodayTaskRow key={t.id} task={t} today={today} serverRunning={running} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

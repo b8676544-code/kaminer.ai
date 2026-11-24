@@ -8,6 +8,8 @@ export type TodayTaskBase = {
   status: string;
   priority: string;
   due_date: string | null;
+  category: string;
+  created_at?: string;
 };
 
 export const WEEK_AHEAD_DAYS = 7;
@@ -20,8 +22,15 @@ function byDueThenPriority<T extends TodayTaskBase>(a: T, b: T): number {
   return Number(b.priority === "urgent") - Number(a.priority === "urgent");
 }
 
-export function groupTodayTasks<T extends TodayTaskBase>(tasks: T[], today: string) {
-  const open = tasks.filter((t) => t.status !== "done");
+// ללא תאריך: הדחופות קודם, ואחריהן החדשות קודם
+function byPriorityThenNewest<T extends TodayTaskBase>(a: T, b: T): number {
+  const urgent = Number(b.priority === "urgent") - Number(a.priority === "urgent");
+  if (urgent !== 0) return urgent;
+  return (b.created_at ?? "").localeCompare(a.created_at ?? "");
+}
+
+// כל משימה מופיעה ברשימה אחת בלבד, לפי הסדר: להיום, בתהליך, ממתינות, השבוע, ללא תאריך
+function groupSet<T extends TodayTaskBase>(open: T[], today: string) {
   const weekEnd = addDays(today, WEEK_AHEAD_DAYS);
 
   // "ממתין ללקוח" הוא הכדור אצל הלקוח, ולכן מוצג רק ברשימת המעקב
@@ -43,8 +52,31 @@ export function groupTodayTasks<T extends TodayTaskBase>(tasks: T[], today: stri
     else week.push({ day: t.due_date!, tasks: [t] });
   }
 
-  return { dueToday, inProgress, waiting, week };
+  const undated = mine.filter((t) => !shown.has(t.id) && t.due_date === null).sort(byPriorityThenNewest);
+
+  return { dueToday, inProgress, waiting, week, undated };
 }
+
+export type TodayGroups<T extends TodayTaskBase> = ReturnType<typeof groupSet<T>>;
+
+// משימות אישיות מופרדות לכרטיס משלהן בתחתית המסך, והרשימות העסקיות נשארות נקיות
+export function groupTodayTasks<T extends TodayTaskBase>(tasks: T[], today: string) {
+  const open = tasks.filter((t) => t.status !== "done");
+  return {
+    business: groupSet(
+      open.filter((t) => t.category !== "personal"),
+      today,
+    ),
+    personal: groupSet(
+      open.filter((t) => t.category === "personal"),
+      today,
+    ),
+  };
+}
+
+export const countGroups = (g: TodayGroups<TodayTaskBase>) =>
+  g.dueToday.length + g.inProgress.length + g.waiting.length + g.undated.length +
+  g.week.reduce((n, w) => n + w.tasks.length, 0);
 
 // דקות עבודה היום: רישומים שהסתיימו לפי המשך שנשמר, והשעון הפתוח עד עכשיו
 export function sumTodayMinutes(

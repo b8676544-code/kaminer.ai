@@ -14,6 +14,8 @@ import { formatMoney, type Pricing } from "@/features/shared/pricing";
 import { PricingFields } from "@/features/shared/pricing-fields";
 import {
   CATEGORY_LABELS,
+  isOwnBusinessCategory,
+  OWN_BUSINESS_LABEL,
   PRIORITY_LABELS,
   STATUS_LABELS,
   TASK_CATEGORIES,
@@ -173,7 +175,9 @@ export function TaskForm({
                 setProjectId("");
               }}
             >
-              <option value="">{category === "clients" ? "בחרי לקוח" : "ללא לקוח"}</option>
+              <option value="">
+                {category === "clients" ? "בחרי לקוח" : isOwnBusinessCategory(category) ? OWN_BUSINESS_LABEL : "ללא לקוח"}
+              </option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

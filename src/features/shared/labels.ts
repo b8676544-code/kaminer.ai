@@ -17,6 +17,19 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
   personal: "אישיות",
 };
 
+// משימת שיווק או עסקית בלי לקוח היא של העסק עצמו ("כביכול אני הלקוח")
+export const OWN_BUSINESS_LABEL = "העסק שלי";
+export const OWN_BUSINESS_CATEGORIES: TaskCategory[] = ["marketing", "business"];
+export const OWN_BUSINESS_FILTER = "self";
+
+export const isOwnBusinessCategory = (category: string) => (OWN_BUSINESS_CATEGORIES as string[]).includes(category);
+
+// מה להציג במקום הלקוח: שם הלקוח, "העסק שלי", או null (לקוחות בלי לקוח, אישיות)
+export function clientLabel(category: string, clientName: string | null | undefined): string | null {
+  if (clientName) return clientName;
+  return isOwnBusinessCategory(category) ? OWN_BUSINESS_LABEL : null;
+}
+
 export const STATUS_LABELS: Record<TaskStatus, string> = {
   todo: "לביצוע",
   in_progress: "בתהליך",

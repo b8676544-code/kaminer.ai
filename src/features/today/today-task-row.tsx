@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { formatDate, isOverdue } from "@/features/shared/format";
+import { clientLabel } from "@/features/shared/labels";
 import { setTaskStatus } from "@/features/tasks/actions";
 import type { RunningTimer } from "@/features/time/queries";
 import { TimerButton } from "@/features/time/timer-button";
@@ -81,7 +82,7 @@ export function TodayTaskRow({
           {personal ? (
             <span className="rounded bg-amber-500/20 px-1.5 text-amber-900 dark:text-amber-200">אישית</span>
           ) : (
-            task.clients && <span>{task.clients.name}</span>
+            clientLabel(task.category, task.clients?.name) && <span>{clientLabel(task.category, task.clients?.name)}</span>
           )}
           {task.priority === "urgent" && <span className="text-destructive font-medium">דחופה</span>}
           {task.due_date && (

@@ -9,6 +9,7 @@ import { taskBillableMinutes } from "@/features/projects/queries";
 import { formatMoney } from "@/features/shared/pricing";
 import { PricingCard } from "@/features/shared/pricing-card";
 import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
+import { clientLabel } from "@/features/shared/labels";
 import { CategoryBadge, PriorityBadge } from "@/features/tasks/badges";
 import { Checklist } from "@/features/tasks/checklist";
 import { DeleteTaskButton } from "@/features/tasks/delete-task-button";
@@ -137,7 +138,7 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
                       {task.clients.name}
                     </Link>
                   ) : (
-                    "—"
+                    (clientLabel(task.category, null) ?? "—")
                   )}
                 </dd>
                 {task.projects && (

@@ -6,7 +6,7 @@ import { jerusalemToIso, todayInJerusalem } from "@/features/shared/format";
 import { createClient } from "@/lib/supabase/server";
 import { groupTodayTasks, sumTodayMinutes, WEEK_AHEAD_DAYS } from "./group";
 
-const TASK_SELECT = "id, title, category, status, priority, due_date, clients(name)";
+const TASK_SELECT = "id, title, category, status, priority, due_date, created_at, clients(name)";
 
 // כל הנתונים של "היום שלי" בבת אחת
 export async function getTodayData() {
@@ -23,7 +23,7 @@ export async function getTodayData() {
       .from("tasks")
       .select(TASK_SELECT)
       .neq("status", "done")
-      .or(`due_date.lte.${weekEnd},status.in.(in_progress,waiting_client)`)
+      .or(`due_date.lte.${weekEnd},due_date.is.null,status.in.(in_progress,waiting_client)`)
       .order("due_date", { ascending: true, nullsFirst: false })
       .limit(500),
     listMeetings(dayStart, jerusalemToIso(addDays(today, 2), "00:00")),
@@ -46,4 +46,4 @@ export async function getTodayData() {
 }
 
 export type TodayData = Awaited<ReturnType<typeof getTodayData>>;
-export type TodayTask = TodayData["tasks"]["dueToday"][number];
+export type TodayTask = TodayData["tasks"]["business"]["dueToday"][number];

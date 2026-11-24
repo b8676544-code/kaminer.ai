@@ -112,7 +112,8 @@ export function parseChecklistLines(text: string | undefined): string[] {
 
 // סינון רשימת המשימות מתוך ה-URL. ערך לא מוכר פשוט מתעלמים ממנו.
 export const taskFiltersSchema = z.object({
-  client: z.guid().optional().catch(undefined),
+  // מזהה לקוח, או "self" = העסק שלי (שיווק ועסקיות בלי לקוח)
+  client: z.union([z.guid(), z.literal("self")]).optional().catch(undefined),
   category: taskCategorySchema.optional().catch(undefined),
   status: z.union([taskStatusSchema, z.literal("open")]).optional().catch(undefined),
   freelancer: z.guid().optional().catch(undefined),

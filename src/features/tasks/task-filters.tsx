@@ -5,7 +5,14 @@ import Link from "next/link";
 
 import { NativeSelect } from "@/components/ui/native-select";
 import { Label } from "@/components/ui/label";
-import { CATEGORY_LABELS, STATUS_LABELS, TASK_CATEGORIES, TASK_STATUSES } from "@/features/shared/labels";
+import {
+  CATEGORY_LABELS,
+  OWN_BUSINESS_FILTER,
+  OWN_BUSINESS_LABEL,
+  STATUS_LABELS,
+  TASK_CATEGORIES,
+  TASK_STATUSES,
+} from "@/features/shared/labels";
 import type { TaskFilters } from "./schemas";
 
 type Option = { id: string; name: string };
@@ -58,6 +65,7 @@ export function TaskFiltersBar({
         <Label htmlFor="f-client">לקוח</Label>
         <NativeSelect id="f-client" name="client" defaultValue={filters.client ?? ""} onChange={submit}>
           <option value="">הכול</option>
+          <option value={OWN_BUSINESS_FILTER}>{OWN_BUSINESS_LABEL}</option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}

@@ -19,7 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 
 import { formatDate, isOverdue } from "@/features/shared/format";
-import { STATUS_LABELS, TASK_STATUSES, type TaskStatus } from "@/features/shared/labels";
+import { clientLabel, STATUS_LABELS, TASK_STATUSES, type TaskStatus } from "@/features/shared/labels";
 import { cn } from "@/lib/utils";
 import { setTaskStatus } from "./actions";
 import { CategoryBadge, PriorityBadge } from "./badges";
@@ -145,7 +145,7 @@ function TaskCard({ task, today }: { task: TaskListItem; today: string }) {
         <PriorityBadge priority={task.priority} />
       </div>
       <div className="text-muted-foreground flex justify-between text-xs">
-        <span>{task.clients?.name ?? task.freelancers?.full_name ?? ""}</span>
+        <span>{clientLabel(task.category, task.clients?.name) ?? task.freelancers?.full_name ?? ""}</span>
         {task.due_date && (
           <span className={cn(overdue && "text-destructive font-medium")}>{formatDate(task.due_date)}</span>
         )}

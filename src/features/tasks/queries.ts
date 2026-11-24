@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { OWN_BUSINESS_CATEGORIES, OWN_BUSINESS_FILTER } from "@/features/shared/labels";
 import type { TaskFilters } from "./schemas";
 
 const LIST_SELECT =
@@ -10,7 +11,9 @@ export async function listTasks(filters: TaskFilters) {
   const supabase = await createClient();
   let query = supabase.from("tasks").select(LIST_SELECT);
 
-  if (filters.client) query = query.eq("client_id", filters.client);
+  if (filters.client === OWN_BUSINESS_FILTER) {
+    query = query.is("client_id", null).in("category", OWN_BUSINESS_CATEGORIES);
+  } else if (filters.client) query = query.eq("client_id", filters.client);
   if (filters.category) query = query.eq("category", filters.category);
   if (filters.freelancer) query = query.eq("assignee_freelancer_id", filters.freelancer);
   if (filters.project) query = query.eq("project_id", filters.project);

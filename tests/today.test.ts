@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { groupTodayTasks, sumTodayMinutes } from "@/features/today/group";
+import { countGroups, groupTodayTasks, sumTodayMinutes } from "@/features/today/group";
 
 const TODAY = "2026-11-24";
-const task = (id: string, status: string, due_date: string | null, priority = "normal") => ({
-  id,
-  status,
-  priority,
-  due_date,
-});
+const task = (
+  id: string,
+  status: string,
+  due_date: string | null,
+  priority = "normal",
+  category = "clients",
+  created_at = "2026-11-01T00:00:00Z",
+) => ({ id, status, priority, due_date, category, created_at });
 
 describe("חלוקת משימות להיום שלי", () => {
   const tasks = [
@@ -23,7 +25,7 @@ describe("חלוקת משימות להיום שלי", () => {
     task("far", "todo", "2026-12-02"),
     task("done", "done", TODAY),
   ];
-  const g = groupTodayTasks(tasks, TODAY);
+  const g = groupTodayTasks(tasks, TODAY).business;
 
   it("להיום: באיחור קודם, ובאותו יום הדחופה קודם", () => {
     expect(g.dueToday.map((t) => t.id)).toEqual(["late", "today-urgent", "today", "progress-today"]);
@@ -51,8 +53,44 @@ describe("חלוקת משימות להיום שלי", () => {
   });
 
   it("סוף חודש: השבוע עובר לחודש הבא", () => {
-    const w = groupTodayTasks([task("dec", "todo", "2026-12-05")], "2026-11-30").week;
+    const w = groupTodayTasks([task("dec", "todo", "2026-12-05")], "2026-11-30").business.week;
     expect(w.map((x) => x.day)).toEqual(["2026-12-05"]);
+  });
+});
+
+describe("ללא תאריך ומשימות אישיות", () => {
+  const tasks = [
+    task("undated-old", "todo", null, "normal", "marketing", "2026-11-01T00:00:00Z"),
+    task("undated-new", "todo", null, "normal", "business", "2026-11-20T00:00:00Z"),
+    task("undated-urgent", "todo", null, "urgent", "clients", "2026-10-01T00:00:00Z"),
+    task("undated-progress", "in_progress", null),
+    task("undated-waiting", "waiting_client", null),
+    task("undated-done", "done", null),
+    task("p-today", "todo", TODAY, "normal", "personal"),
+    task("p-undated", "todo", null, "normal", "personal"),
+    task("p-week", "todo", "2026-11-26", "normal", "personal"),
+  ];
+  const { business, personal } = groupTodayTasks(tasks, TODAY);
+
+  it("ללא תאריך: רק מה שלא בתהליך ולא ממתין, דחופה קודם ואז החדשה", () => {
+    expect(business.undated.map((t) => t.id)).toEqual(["undated-urgent", "undated-new", "undated-old"]);
+    expect(business.inProgress.map((t) => t.id)).toEqual(["undated-progress"]);
+    expect(business.waiting.map((t) => t.id)).toEqual(["undated-waiting"]);
+  });
+
+  it("אישיות לא מופיעות ברשימות העסקיות, ומחולקות באותה שיטה", () => {
+    const businessIds = [
+      ...business.dueToday,
+      ...business.inProgress,
+      ...business.waiting,
+      ...business.undated,
+      ...business.week.flatMap((w) => w.tasks),
+    ].map((t) => t.id);
+    expect(businessIds.some((id) => id.startsWith("p-"))).toBe(false);
+    expect(personal.dueToday.map((t) => t.id)).toEqual(["p-today"]);
+    expect(personal.undated.map((t) => t.id)).toEqual(["p-undated"]);
+    expect(personal.week.map((w) => w.day)).toEqual(["2026-11-26"]);
+    expect(countGroups(personal)).toBe(3);
   });
 });
 

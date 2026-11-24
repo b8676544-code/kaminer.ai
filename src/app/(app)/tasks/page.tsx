@@ -8,6 +8,7 @@ import { listActiveClientOptions } from "@/features/clients/queries";
 import { listActiveFreelancerOptions } from "@/features/freelancers/queries";
 import { listProjectOptions } from "@/features/projects/queries";
 import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
+import { clientLabel } from "@/features/shared/labels";
 import { CategoryBadge, PriorityBadge, StatusBadge } from "@/features/tasks/badges";
 import { KanbanBoard } from "@/features/tasks/kanban-board";
 import { listTasks, type TaskListItem } from "@/features/tasks/queries";
@@ -167,7 +168,7 @@ function TasksTable({ tasks, today, running }: { tasks: TaskListItem[]; today: s
                       {t.clients.name}
                     </Link>
                   ) : (
-                    "—"
+                    (clientLabel(t.category, null) ?? "—")
                   )}
                   {t.projects && t.project_id && (
                     <Link
