@@ -8,17 +8,22 @@ export type TodayTaskBase = {
   status: string;
   priority: string;
   due_date: string | null;
+  // "HH:MM:SS" מה-DB
+  due_time?: string | null;
   category: string;
   created_at?: string;
 };
 
 export const WEEK_AHEAD_DAYS = 7;
 
-// לפי תאריך יעד, ובאותו תאריך הדחופות קודם
+// לפי תאריך יעד. באותו תאריך: משימות עם שעה לפי השעה, ואחריהן השאר, הדחופות קודם
 function byDueThenPriority<T extends TodayTaskBase>(a: T, b: T): number {
   const da = a.due_date ?? "9999-12-31";
   const db = b.due_date ?? "9999-12-31";
   if (da !== db) return da < db ? -1 : 1;
+  const ta = a.due_time ?? "99";
+  const tb = b.due_time ?? "99";
+  if (ta !== tb) return ta < tb ? -1 : 1;
   return Number(b.priority === "urgent") - Number(a.priority === "urgent");
 }
 

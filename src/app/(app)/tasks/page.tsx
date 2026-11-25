@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { listActiveClientOptions } from "@/features/clients/queries";
 import { listActiveFreelancerOptions } from "@/features/freelancers/queries";
 import { listProjectOptions } from "@/features/projects/queries";
-import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
+import { formatDue, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
 import { clientLabel } from "@/features/shared/labels";
 import { CategoryBadge, PriorityBadge, StatusBadge } from "@/features/tasks/badges";
 import { KanbanBoard } from "@/features/tasks/kanban-board";
@@ -183,7 +183,7 @@ function TasksTable({ tasks, today, running }: { tasks: TaskListItem[]; today: s
                   <StatusBadge status={t.status} />
                 </TableCell>
                 <TableCell className={cn("whitespace-nowrap", overdue && "text-destructive font-medium")}>
-                  {formatDate(t.due_date)}
+                  {formatDue(t.due_date, t.due_time)}
                 </TableCell>
                 <TableCell>{formatMinutes(t.estimate_minutes)}</TableCell>
                 <TableCell>{t.freelancers?.full_name ?? "אני"}</TableCell>

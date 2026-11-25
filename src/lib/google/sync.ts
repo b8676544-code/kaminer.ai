@@ -9,6 +9,7 @@ import {
   managesAttendees,
   meetingToGoogleEvent,
   resolveConflict,
+  taskTimeFromGoogle,
   type GoogleEvent,
   type GoogleEventBody,
 } from "./mapping";
@@ -220,7 +221,7 @@ async function pull(ctx: Ctx, syncToken: string | null) {
 async function applyGoogleEvents(ctx: Ctx, events: GoogleEvent[]): Promise<number> {
   const { data: locals, error } = await ctx.admin
     .from("meetings")
-    .select("id, google_event_id, google_etag, needs_push, updated_at, deleted_at")
+    .select("id, google_event_id, google_etag, needs_push, updated_at, deleted_at, from_task, task_id")
     .eq("owner_id", ctx.userId)
     .in(
       "google_event_id",
@@ -242,6 +243,7 @@ async function applyGoogleEvents(ctx: Ctx, events: GoogleEvent[]): Promise<numbe
           .from("meetings")
           .update({ deleted_at: syncedAt, needs_push: false, last_synced_at: syncedAt })
           .eq("id", local.id);
+        await updateTaskFromSlot(ctx, local, null);
         changed++;
       }
       continue;
@@ -255,8 +257,16 @@ async function applyGoogleEvents(ctx: Ctx, events: GoogleEvent[]): Promise<numbe
       }
       await ctx.admin
         .from("meetings")
-        .update({ ...mapped, deleted_at: null, needs_push: false, last_synced_at: syncedAt })
+        .update({
+          ...mapped,
+          deleted_at: null,
+          needs_push: false,
+          last_synced_at: syncedAt,
+          // אירוע משימה שנמחק אצלנו ושוחזר ב-Google חוזר כפגישה רגילה: למשימה כבר יכול להיות אירוע חדש
+          ...(local.from_task && local.deleted_at ? { from_task: false } : {}),
+        })
         .eq("id", local.id);
+      await updateTaskFromSlot(ctx, local, mapped);
       changed++;
     } else {
       const { error: insertError } = await ctx.admin.from("meetings").insert({
@@ -271,6 +281,22 @@ async function applyGoogleEvents(ctx: Ctx, events: GoogleEvent[]): Promise<numbe
     }
   }
   return changed;
+}
+
+// אירוע שנוצר משעה של משימה והשתנה ב-Google: התאריך והשעה של המשימה עוקבים אחריו.
+// service role: הטריגר tasks_sync_slot מדלג, כך שהאירוע לא נכתב שוב
+async function updateTaskFromSlot(
+  ctx: Ctx,
+  local: { id: string; from_task: boolean; task_id: string | null; deleted_at: string | null },
+  mapped: Parameters<typeof taskTimeFromGoogle>[0],
+) {
+  if (!local.from_task || !local.task_id) return;
+  // נמחק אצלנו ואז שוחזר ב-Google: לא מחזירים שעה למשימה שכבר לא מצפה לה
+  if (mapped && local.deleted_at) return;
+  const { detach, ...task } = taskTimeFromGoogle(mapped);
+  const { error } = await ctx.admin.from("tasks").update(task).eq("id", local.task_id).eq("owner_id", ctx.userId);
+  if (error) throw error;
+  if (detach) await ctx.admin.from("meetings").update({ from_task: false }).eq("id", local.id);
 }
 
 // ───────────── דחיפה: מערכת ← Google ─────────────

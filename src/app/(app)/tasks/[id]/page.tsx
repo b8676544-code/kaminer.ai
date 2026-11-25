@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { taskBillableMinutes } from "@/features/projects/queries";
 import { formatMoney } from "@/features/shared/pricing";
 import { PricingCard } from "@/features/shared/pricing-card";
-import { formatDate, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
+import { formatDate, formatDue, formatMinutes, isOverdue, todayInJerusalem } from "@/features/shared/format";
 import { clientLabel } from "@/features/shared/labels";
 import { CategoryBadge, PriorityBadge } from "@/features/tasks/badges";
 import { Checklist } from "@/features/tasks/checklist";
@@ -161,8 +161,9 @@ async function TaskDetails({ params }: Pick<PageProps<"/tasks/[id]">, "params">)
                 )}
                 <dt className="text-muted-foreground">תאריך יעד</dt>
                 <dd className={cn(overdue && "text-destructive font-medium")}>
-                  {formatDate(task.due_date)}
+                  {formatDue(task.due_date, task.due_time)}
                   {overdue && " (באיחור)"}
+                  {task.due_time && <span className="text-muted-foreground"> · ביומן</span>}
                 </dd>
                 <dt className="text-muted-foreground">מי מטפלת</dt>
                 <dd>{task.freelancers?.full_name ?? "אני"}</dd>

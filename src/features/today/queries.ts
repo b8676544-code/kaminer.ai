@@ -6,7 +6,7 @@ import { jerusalemToIso, todayInJerusalem } from "@/features/shared/format";
 import { createClient } from "@/lib/supabase/server";
 import { groupTodayTasks, sumTodayMinutes, WEEK_AHEAD_DAYS } from "./group";
 
-const TASK_SELECT = "id, title, category, status, priority, due_date, created_at, clients(name)";
+const TASK_SELECT = "id, title, category, status, priority, due_date, due_time, created_at, clients(name)";
 
 // כל הנתונים של "היום שלי" בבת אחת
 export async function getTodayData() {

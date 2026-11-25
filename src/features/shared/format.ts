@@ -94,3 +94,13 @@ export function isoToJerusalem(iso: string): { date: string; time: string } {
   const pad = (n: number) => String(n).padStart(2, "0");
   return { date: `${p.y}-${pad(p.mo)}-${pad(p.d)}`, time: `${pad(p.h)}:${pad(p.mi)}` };
 }
+
+// שעה של משימה: "HH:MM" מתוך "HH:MM:SS" (עמודת time)
+export function timeOfDay(value: string | null | undefined): string {
+  return value ? value.slice(0, 5) : "";
+}
+
+// תאריך יעד ושעה, אם יש: "01.12.2026 10:00"
+export function formatDue(date: string | null | undefined, time: string | null | undefined): string {
+  return time && date ? `${formatDate(date)} ${timeOfDay(time)}` : formatDate(date);
+}

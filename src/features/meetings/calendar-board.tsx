@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function CalendarBoard({
   tasks: TaskOption[];
   contacts: InviteContact[];
 }) {
+  const router = useRouter();
   const [dialog, setDialog] = useState<MeetingDialogState>(null);
   const close = useCallback(() => setDialog(null), []);
   // נשמר במעבר בין שבועות (ניווט רך לא מאפס את הרכיב)
@@ -50,8 +52,11 @@ export function CalendarBoard({
       start: minutesToTime(startMinutes),
       end: minutesToTime(startMinutes + DEFAULT_MEETING_MINUTES),
     });
+  // זמן שנקבע למשימה נערך בדף המשימה (התאריך, השעה והמשך באים ממנה)
   const open = (meeting: MeetingItem) =>
-    setDialog({
+    meeting.from_task && meeting.task_id
+      ? router.push(`/tasks/${meeting.task_id}`)
+      : setDialog({
       kind: "edit",
       meeting,
       ended: new Date(meeting.ends_at).getTime() <= Date.now(),

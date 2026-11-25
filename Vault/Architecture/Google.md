@@ -21,7 +21,7 @@ tags:
 
 <!-- auto:start -->
 ## קבצים (מתעדכן אוטומטית)
-_עודכן: 24.11.2026 · 14 קבצים. לא לערוך ידנית בין הסימונים._
+_עודכן: 25.11.2026 · 14 קבצים. לא לערוך ידנית בין הסימונים._
 
 | קובץ | מה יש בו |
 |---|---|
@@ -34,7 +34,7 @@ _עודכן: 24.11.2026 · 14 קבצים. לא לערוך ידנית בין הס
 | `src/features/google/sync-now-button.tsx` | SyncNowButton |
 | `src/lib/google/calendar.ts` | GoogleApiError, CalendarOption, listCalendars, listEvents, NotifyOpts, insertEvent, patchEvent, deleteEvent |
 | `src/lib/google/crypto.ts` | parseEncryptionKey, getEncryptionKey, encryptToken, decryptToken |
-| `src/lib/google/mapping.ts` | UNTITLED, GoogleEvent, MeetingFromGoogle, SyncedMeetingFields, GoogleEventBody, googleEventToMeeting, managesAttendees, meetingToGoogleEvent, meetingIdToEventId, resolveConflict |
+| `src/lib/google/mapping.ts` | UNTITLED, GoogleEvent, MeetingFromGoogle, SyncedMeetingFields, GoogleEventBody, googleEventToMeeting, managesAttendees, meetingToGoogleEvent, TaskTimeUpdate, taskTimeFromGoogle, meetingIdToEventId, resolveConflict |
 | `src/lib/google/oauth-state.ts` | OAUTH_STATE_COOKIE, createOAuthState, isValidOAuthState |
 | `src/lib/google/oauth.ts` | GOOGLE_SCOPES, GoogleAuthRevokedError, isGoogleConfigured, googleRedirectUri, buildAuthUrl, exchangeCode, refreshAccessToken, revokeToken, emailFromIdToken |
 | `src/lib/google/sync-health.ts` | NORMAL_THROTTLE_MS, BACKOFF_THROTTLE_MS, ALERT_AFTER_FAILURES, SyncTrigger, throttleMs, HealthState, nextHealth |

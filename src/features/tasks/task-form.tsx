@@ -36,6 +36,8 @@ export type TaskFormValues = {
   status: TaskStatus;
   priority: TaskPriority;
   due_date: string | null;
+  // "HH:MM" או "HH:MM:SS" מה-DB
+  due_time: string | null;
   estimate_minutes: number | null;
   assignee_freelancer_id: string | null;
   freelancer_cost: number | null;
@@ -232,6 +234,11 @@ export function TaskForm({
 
         <Field id="due_date" label="תאריך יעד" error={fe.due_date}>
           <Input name="due_date" type="date" defaultValue={sent("due_date", task.due_date)} />
+        </Field>
+
+        {/* עם שעה (ותאריך) נוצר אירוע ביומן, באורך הערכת הזמן או 30 דקות, ונשלח ל-Google */}
+        <Field id="due_time" label="שעה (תיכנס ליומן)" error={fe.due_time}>
+          <Input name="due_time" type="time" dir="ltr" defaultValue={sent("due_time", task.due_time?.slice(0, 5))} />
         </Field>
 
         <Field id="estimate_minutes" label="הערכת זמן (דקות)" error={fe.estimate_minutes}>

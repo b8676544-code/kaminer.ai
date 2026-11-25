@@ -18,7 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 
-import { formatDate, isOverdue } from "@/features/shared/format";
+import { formatDue, isOverdue } from "@/features/shared/format";
 import { clientLabel, STATUS_LABELS, TASK_STATUSES, type TaskStatus } from "@/features/shared/labels";
 import { cn } from "@/lib/utils";
 import { setTaskStatus } from "./actions";
@@ -147,7 +147,7 @@ function TaskCard({ task, today }: { task: TaskListItem; today: string }) {
       <div className="text-muted-foreground flex justify-between text-xs">
         <span>{clientLabel(task.category, task.clients?.name) ?? task.freelancers?.full_name ?? ""}</span>
         {task.due_date && (
-          <span className={cn(overdue && "text-destructive font-medium")}>{formatDate(task.due_date)}</span>
+          <span className={cn(overdue && "text-destructive font-medium")}>{formatDue(task.due_date, task.due_time)}</span>
         )}
       </div>
     </article>

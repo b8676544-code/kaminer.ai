@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ListTodoIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { meetingsOnDay } from "./calendar-range";
@@ -80,6 +81,7 @@ export function MonthView({
                             {timeOf(m.starts_at)}
                           </span>
                         )}
+                        {m.from_task && <ListTodoIcon className="size-3 shrink-0" aria-label="משימה" />}
                         <span className="truncate">{m.title}</span>
                       </button>
                     ))}

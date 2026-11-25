@@ -52,6 +52,7 @@ async function NewTaskForm({ searchParams }: Pick<PageProps<"/tasks/new">, "sear
     status: "todo",
     priority: "normal",
     due_date: null,
+    due_time: null,
     estimate_minutes: template?.default_estimate_minutes ?? null,
     assignee_freelancer_id: null,
     freelancer_cost: null,

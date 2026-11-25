@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { dbErrorMessage, formToObject, zodToState, type ActionState } from "@/features/shared/form";
 import { requireUser } from "@/lib/auth";
+import { syncCalendar } from "@/lib/google/sync";
 import { parseChecklistLines, taskSchema, taskStatusSchema } from "./schemas";
 
 const idSchema = z.guid();
@@ -15,7 +17,14 @@ function revalidateTasks(taskId?: string) {
   revalidatePath("/tasks");
   revalidatePath("/clients", "layout");
   revalidatePath("/projects", "layout");
+  revalidatePath("/calendar");
   if (taskId) revalidatePath(`/tasks/${taskId}`);
+}
+
+// משימה עם שעה מקבלת אירוע ביומן (טריגר tasks_sync_slot). אחרי שמירה או מחיקה שולחים ל-Google ברקע.
+// בלי חיבור ל-Google, syncCalendar חוזרת מיד
+function pushToGoogle(userId: string) {
+  after(() => syncCalendar(userId, { force: true, trigger: "after-save" }).catch((e) => console.error("[google-sync]", e)));
 }
 
 type Supabase = Awaited<ReturnType<typeof requireUser>>["supabase"];
@@ -29,7 +38,7 @@ async function ownTemplateId(supabase: Supabase, raw: string | undefined): Promi
 }
 
 export async function saveTask(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   const raw = formToObject(formData);
   const parsed = taskSchema.safeParse(raw);
   if (!parsed.success) return { ...zodToState(parsed.error), values: raw };
@@ -78,6 +87,7 @@ export async function saveTask(_prev: ActionState, formData: FormData): Promise<
     }
   }
 
+  pushToGoogle(user.id);
   revalidateTasks(taskId);
   redirect(`/tasks/${taskId}`);
 }
@@ -97,13 +107,14 @@ export async function setTaskStatus(taskId: string, status: string): Promise<Act
 }
 
 export async function deleteTask(taskId: string): Promise<ActionState> {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   const id = idSchema.safeParse(taskId);
   if (!id.success) return { error: "מזהה לא תקין" };
 
   const { error } = await supabase.from("tasks").delete().eq("id", id.data);
   if (error) return { error: dbErrorMessage(error) };
 
+  pushToGoogle(user.id);
   revalidateTasks();
   redirect("/tasks");
 }

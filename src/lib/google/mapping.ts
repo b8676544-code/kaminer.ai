@@ -128,6 +128,18 @@ export function meetingToGoogleEvent(m: SyncedMeetingFields): GoogleEventBody {
   };
 }
 
+// אירוע של משימה (from_task) שהשתנה ב-Google: מה מעדכנים במשימה.
+// בוטל: השעה יורדת והתאריך נשאר. הפך ליום שלם: נשאר רק התאריך, והאירוע מתנתק מהמשימה
+// (detach), כדי שעריכה הבאה של המשימה לא תמחק אותו. אחרת: התאריך והשעה של ההתחלה.
+export type TaskTimeUpdate = { due_date?: string; due_time: string | null; detach: boolean };
+
+export function taskTimeFromGoogle(mapped: Pick<MeetingFromGoogle, "starts_at" | "is_all_day"> | null): TaskTimeUpdate {
+  if (!mapped) return { due_time: null, detach: false };
+  const { date, time } = isoToJerusalem(mapped.starts_at);
+  if (mapped.is_all_day) return { due_date: date, due_time: null, detach: true };
+  return { due_date: date, due_time: time, detach: false };
+}
+
 // מזהה האירוע ב-Google נגזר מה-uuid של הפגישה. ‏hex הוא תת־קבוצה של base32hex
 // שמותר ב-Google, ולכן יצירה חוזרת של אותה פגישה מחזירה 409 ולא יוצרת כפילות.
 export function meetingIdToEventId(meetingId: string): string {

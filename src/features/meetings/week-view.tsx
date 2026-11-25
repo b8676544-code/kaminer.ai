@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, ListTodoIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { isoToJerusalem } from "@/features/shared/format";
@@ -153,7 +153,7 @@ export function WeekView({
                     key={m.id}
                     type="button"
                     title={`${m.title} · ${timeRange(m.starts_at, m.ends_at)}`}
-                    aria-label={`${m.title}, ${timeRange(m.starts_at, m.ends_at)}${m.clients ? `, ${m.clients.name}` : ""}${m.is_personal ? ", אישית" : ""}${m.loggedCount > 0 ? ", נרשם כזמן עבודה" : ""}`}
+                    aria-label={`${m.title}, ${timeRange(m.starts_at, m.ends_at)}${m.clients ? `, ${m.clients.name}` : ""}${m.from_task ? ", משימה" : ""}${m.is_personal ? ", אישית" : ""}${m.loggedCount > 0 ? ", נרשם כזמן עבודה" : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpen(m);
@@ -171,6 +171,7 @@ export function WeekView({
                     }}
                   >
                     <span className="flex items-center gap-1 font-medium">
+                      {m.from_task && <ListTodoIcon className="size-3 shrink-0" aria-hidden />}
                       <span className="truncate">{m.title}</span>
                       {m.loggedCount > 0 && <CheckIcon className="size-3 shrink-0" aria-label="נרשם כזמן עבודה" />}
                     </span>

@@ -16,6 +16,12 @@ const dateSchema = z.preprocess(
   z.iso.date("תאריך לא תקין").nullable(),
 );
 
+// שעה ביום היעד (שעון ישראל). מה-DB מגיע "HH:MM:SS", ומהטופס "HH:MM"
+const timeSchema = z.preprocess(
+  (v) => (v === "" || v == null ? null : typeof v === "string" ? v.slice(0, 5) : v),
+  z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "שעה לא תקינה").nullable(),
+);
+
 // כללי קטגוריה, תואמים ל-CHECK ב-DB:
 // "לקוחות" מחייבת לקוח; "אישיות" בלי לקוח, בלי פרילנסר ובלי עלות.
 export function categoryRuleErrors(task: {
@@ -57,6 +63,8 @@ export const taskSchema = z
     status: taskStatusSchema.default("todo"),
     priority: taskPrioritySchema.default("normal"),
     due_date: dateSchema,
+    // עם שעה נוצר אירוע ביומן (טריגר ב-DB). תואם ל-CHECK tasks_time_needs_date
+    due_time: timeSchema.default(null),
     estimate_minutes: optionalNumber(
       z.number("מספר לא תקין").int("מספר שלם בדקות").positive("הערכה חייבת להיות חיובית").max(100000, "הערכה גדולה מדי"),
     ),
@@ -74,6 +82,7 @@ export const taskSchema = z
   })
   .superRefine((task, ctx) => {
     const errors = { ...categoryRuleErrors(task), ...projectRuleErrors(task) };
+    if (task.due_time && !task.due_date) errors.due_time = "שעה נקבעת רק עם תאריך יעד";
     // כללי התמחור חלים רק על משימה שמתומחרת בעצמה: בודדת, או בפרויקט במחיר נפרד
     if (ownPricing(task)) Object.assign(errors, pricingRuleErrors(task));
     for (const [path, message] of Object.entries(errors)) {

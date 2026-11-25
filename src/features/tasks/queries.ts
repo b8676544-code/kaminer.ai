@@ -5,7 +5,7 @@ import { OWN_BUSINESS_CATEGORIES, OWN_BUSINESS_FILTER } from "@/features/shared/
 import type { TaskFilters } from "./schemas";
 
 const LIST_SELECT =
-  "id, title, category, status, priority, due_date, estimate_minutes, client_id, assignee_freelancer_id, project_id, clients(name), freelancers(full_name), projects(name)";
+  "id, title, category, status, priority, due_date, due_time, estimate_minutes, client_id, assignee_freelancer_id, project_id, clients(name), freelancers(full_name), projects(name)";
 
 export async function listTasks(filters: TaskFilters) {
   const supabase = await createClient();
@@ -22,6 +22,7 @@ export async function listTasks(filters: TaskFilters) {
 
   const { data, error } = await query
     .order("due_date", { ascending: true, nullsFirst: false })
+    .order("due_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw error;

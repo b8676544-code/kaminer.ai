@@ -11,6 +11,9 @@ import { allDayMeetingSchema, logWorkSchema, meetingSchema, type MeetingInput } 
 
 const idSchema = z.guid();
 
+// אירוע שנוצר משעה של משימה נערך ונמחק דרך המשימה (טריגר tasks_sync_slot)
+const TASK_SLOT_ERROR = "זה הזמן שנקבע למשימה. משנים אותו בדף המשימה";
+
 type Supabase = Awaited<ReturnType<typeof requireUser>>["supabase"];
 
 // היומן, דף הלקוח והשעות בכותרת מושפעים, ולכן מרעננים את כל ה-layout
@@ -55,11 +58,12 @@ export async function saveMeeting(_prev: ActionState, formData: FormData): Promi
   if (id) {
     const { data: existing } = await supabase
       .from("meetings")
-      .select("is_all_day")
+      .select("is_all_day, from_task")
       .eq("id", id.data)
       .is("deleted_at", null)
       .maybeSingle();
     if (!existing) return { error: "הפגישה לא נמצאה" };
+    if (existing.from_task) return { error: TASK_SLOT_ERROR };
     isAllDay = existing.is_all_day;
   }
 
@@ -96,6 +100,7 @@ export async function deleteMeeting(meetingId: string): Promise<ActionState> {
     .from("meetings")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id.data)
+    .eq("from_task", false)
     .is("deleted_at", null)
     .select("id")
     .maybeSingle();

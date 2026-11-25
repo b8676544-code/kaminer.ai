@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { formatDate, isOverdue } from "@/features/shared/format";
+import { formatDate, isOverdue, timeOfDay } from "@/features/shared/format";
 import { clientLabel } from "@/features/shared/labels";
 import { setTaskStatus } from "@/features/tasks/actions";
 import type { RunningTimer } from "@/features/time/queries";
@@ -18,6 +18,7 @@ export type TodayRowTask = {
   status: string;
   priority: string;
   due_date: string | null;
+  due_time: string | null;
   clients: { name: string } | null;
 };
 
@@ -88,6 +89,7 @@ export function TodayTaskRow({
           {task.due_date && (
             <span className={cn(overdue && "text-destructive font-medium")}>
               {formatDate(task.due_date)}
+              {task.due_time && <span dir="ltr"> {timeOfDay(task.due_time)}</span>}
               {overdue && " (באיחור)"}
             </span>
           )}
